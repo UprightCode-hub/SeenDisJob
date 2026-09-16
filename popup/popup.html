@@ -1,340 +1,316 @@
 <!--
   FILE: popup/popup.html
-  v1.4 — Material 3–inspired tonal redesign. Replaces the glass/translucent
-  v1.3 visual system with opaque tonal surfaces and a fixed elevation scale.
-  No IDs, classes referenced by popup.js, or message contracts were changed.
-  popup.js is untouched by this pass (verified below).
+  v1.5.0 — brought into the onboarding/dashboard v1.5 visual system.
+
+  Visual-only pass. popup.js is NOT modified: every ID it reads
+  (header-sub, update-banner, consent-banner, status-card, status-title,
+  status-detail, record-count, muted-note, empty-state, history-panel,
+  history-list, action-feedback, btn-dashboard, btn-backup, btn-clear)
+  and every dynamic class it sets or generates (.status-card ok/alert,
+  .hist-item/.hist-dot ok|alert|muted/.hist-body/.hist-label/
+  .hist-detail/.hist-time) is preserved.
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <title>SeenDisJob</title>
 <style>
-  /* ============================================================
-     TOKENS — opaque tonal palette. Neutral gray/black/white base,
-     three restrained semantic accents (success / warning / error).
-     Every surface below is a solid color; no alpha compositing is
-     used for backgrounds, only for the two hairline drop-shadows.
-     ============================================================ */
   :root {
-    /* Surfaces (lowest → highest emphasis) */
-    --page-bg:               #EAEAE6;
-    --surface:                #FFFFFF;
-    --surface-container:      #F2F2EE;
-    --surface-container-high: #E7E7E1;
-    --surface-container-highest: #DCDCD5;
-    --surface-raised:         #FFFFFF; /* paired with --elevation-1 shadow */
-
-    /* Outlines */
-    --outline:        #D8D7D0;
-    --outline-strong:  #8F8F87;
-
-    /* Ink */
-    --ink-primary:    #191916;
-    --ink-secondary:  #54544E;
-    --ink-tertiary:   #74746D;
-    --on-inverse:     #FFFFFF;
-
-    /* Semantic — success */
-    --success:            #1E7A34;
-    --success-container:  #DCEFDD;
-    --on-success-container: #123D1D;
-    --success-outline:    #A9D3AE;
-
-    /* Semantic — warning */
-    --warning:            #7A4B00;
-    --warning-container:  #F3E2C0;
-    --on-warning-container: #4A2E00;
-    --warning-outline:    #DDBD7E;
-
-    /* Semantic — error */
-    --error:            #A5231B;
-    --error-container:  #F6D9D6;
-    --on-error-container: #5C140E;
-    --error-outline:    #E3AFA9;
-
-    /* Elevation — flat, neutral drop-shadows only (no glow, no color) */
-    --elevation-1: 0 1px 2px rgba(0,0,0,.07), 0 1px 1px rgba(0,0,0,.05);
-
+    --paper:       #F5F4F0;
+    --paper-hi:    #FDFCFA;
+    --surface:     #FFFFFF;
+    --ink:         #17181B;
+    --ink-soft:    #55585E;
+    --ink-faint:   #8A8D93;
+    --rule:        #D9D7D0;
+    --rule-strong: #C7C4BB;
+    --ok:          #1E8E3E;
+    --ok-bg:       #E9F6EC;
+    --ok-rule:     #C3E0CC;
+    --amber:       #B8860B;
+    --amber-bg:    #FDF6E3;
+    --amber-rule:  #E8D9A0;
+    --error:       #A5231B;
+    --error-bg:    #F6D9D6;
+    --error-rule:  #E3AFA9;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
   }
 
-  * { box-sizing: border-box; }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    margin: 0;
-    width: 320px;
-    background: var(--page-bg);
-    color: var(--ink-primary);
-    font-family: var(--sans);
-    font-size: 13.5px;
-    line-height: 1.45;
+    /* Chrome caps popup width at 800px; 360 is the comfortable read
+       width for the status sentence without wrapping mid-phrase. */
+    width: 360px;
+    max-width: 100vw;
+    background: var(--paper);
+    color: var(--ink);
+    font: 13.5px/1.5 var(--sans);
   }
 
   a { color: inherit; }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
 
-  /* ============================================================
-     1. BRAND + STATUS
-     ============================================================ */
+  .top-stripe { height: 3px; background: var(--ink); }
+
+  /* ══ Header ═══════════════════════════════════════════════════ */
   header {
-    padding: 14px 16px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--outline);
+    padding: 13px 16px;
+    background: var(--paper-hi);
+    border-bottom: 1px solid var(--rule);
     display: flex;
     align-items: center;
     gap: 10px;
   }
-  header img { width: 24px; height: 24px; flex-shrink: 0; border-radius: 5px; }
-  header h1 {
-    font-size: 13.5px;
-    font-weight: 700;
-    margin: 0;
-    letter-spacing: -0.01em;
-    color: var(--ink-primary);
+  header img {
+    width: 26px; height: 26px;
+    flex-shrink: 0;
+    border-radius: 7px;
+    border: 1px solid var(--rule);
   }
+  header h1 { font-size: 14px; font-weight: 700; letter-spacing: -0.02em; }
   header .sub {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--ink-secondary);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
     margin-top: 2px;
   }
 
-  .update-banner,
-  .consent-banner {
+  .update-banner, .consent-banner {
     margin: 10px 16px 0;
-    padding: 9px 12px;
-    border-radius: 8px;
+    padding: 10px 12px;
+    border-radius: 9px;
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.45;
   }
-  .update-banner {
-    background: var(--success-container);
-    color: var(--on-success-container);
-    border: 1px solid var(--success-outline);
-  }
-  .update-banner a {
+  .update-banner { background: var(--ok-bg); border: 1px solid var(--ok-rule); color: var(--ink-soft); }
+  .consent-banner { background: var(--amber-bg); border: 1px solid var(--amber-rule); color: var(--ink-soft); }
+  .update-banner a, .consent-banner a {
+    color: var(--ink);
     font-weight: 700;
-    text-decoration: underline;
     text-underline-offset: 2px;
   }
-  .update-banner a:focus-visible { outline: 2px solid var(--on-success-container); outline-offset: 2px; border-radius: 2px; }
 
-  .consent-banner {
-    background: var(--warning-container);
-    color: var(--on-warning-container);
-    border: 1px solid var(--warning-outline);
-  }
-  .consent-banner a {
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .consent-banner a:focus-visible { outline: 2px solid var(--on-warning-container); outline-offset: 2px; border-radius: 2px; }
-
-  /* ============================================================
-     2. CURRENT-TAB RESULT
-     ============================================================ */
+  /* ══ Current-tab status — the headline of this popup ══════════ */
   .status-card {
-    margin: 14px 16px 0;
+    margin: 12px 16px 0;
     padding: 14px 16px;
-    border-radius: 10px;
-    background: var(--surface-raised);
-    border: 1px solid var(--outline);
-    box-shadow: var(--elevation-1);
+    border-radius: 11px;
+    background: var(--paper-hi);
+    border: 1px solid var(--rule-strong);
+    /* left edge carries the verdict at a glance, before any reading */
+    border-left: 3px solid var(--rule-strong);
   }
-  .status-card.ok {
-    background: var(--success-container);
-    border-color: var(--success-outline);
-  }
-  .status-card.alert {
-    background: var(--error-container);
-    border-color: var(--error-outline);
-  }
+  .status-card.ok    { background: var(--ok-bg);    border-color: var(--ok-rule);    border-left-color: var(--ok); }
+  .status-card.alert { background: var(--amber-bg); border-color: var(--amber-rule); border-left-color: var(--amber); }
 
   .status-row { display: flex; align-items: flex-start; gap: 10px; }
   .status-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--ink-tertiary);
-    margin-top: 4px; flex-shrink: 0;
-    box-shadow: 0 0 0 2px var(--surface-raised);
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--ink-faint);
+    margin-top: 5px;
+    flex-shrink: 0;
   }
-  .status-card.ok .status-dot    { background: var(--success); box-shadow: 0 0 0 2px var(--success-container); }
-  .status-card.alert .status-dot { background: var(--error);   box-shadow: 0 0 0 2px var(--error-container); }
+  .status-card.ok .status-dot    { background: var(--ok); }
+  .status-card.alert .status-dot { background: var(--amber); }
 
-  .status-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; color: var(--ink-primary); }
-  .status-card.ok .status-title    { color: var(--on-success-container); }
-  .status-card.alert .status-title { color: var(--on-error-container); }
+  .status-title {
+    font-size: 14.5px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    margin-bottom: 3px;
+  }
+  .status-card.ok .status-title    { color: var(--ok); }
+  .status-card.alert .status-title { color: var(--amber); }
+  .status-detail { color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; }
+  .status-detail b { font-weight: 700; color: var(--ink); }
 
-  .status-detail { color: var(--ink-secondary); font-size: 12.5px; }
-  .status-card.ok .status-detail    { color: var(--on-success-container); }
-  .status-card.alert .status-detail { color: var(--on-error-container); }
-  .status-detail b { font-weight: 700; color: inherit; }
-
-  /* ============================================================
-     3. TRACKED-JOB COUNT
-     ============================================================ */
+  /* ══ Tracked count ════════════════════════════════════════════ */
   .stat-row {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    margin: 12px 16px 0;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: var(--surface-container);
+    align-items: center;
+    margin: 10px 16px 0;
+    padding: 12px 14px;
+    border-radius: 9px;
+    background: var(--paper-hi);
+    border: 1px solid var(--rule);
   }
   .stat-row .count {
-    font-family: var(--mono);
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--ink-primary);
+    font: 700 26px/1 var(--mono);
+    letter-spacing: -0.03em;
+    color: var(--ink);
   }
   .stat-row .label {
-    color: var(--ink-tertiary);
+    color: var(--ink-faint);
     font-size: 11px;
     text-align: right;
+    line-height: 1.35;
     max-width: 190px;
   }
-
   .muted-note {
     margin: 6px 16px 0;
-    font-size: 11px;
-    color: var(--ink-tertiary);
+    font: 11px var(--mono);
+    color: var(--ink-faint);
     text-align: right;
   }
   .empty-state {
     margin: 10px 16px 0;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: var(--surface-container);
-    border: 1px solid var(--outline);
+    padding: 14px 12px;
+    border-radius: 9px;
+    background: var(--paper-hi);
+    border: 1px dashed var(--rule-strong);
     font-size: 12px;
-    color: var(--ink-secondary);
+    color: var(--ink-faint);
     text-align: center;
+    line-height: 1.5;
   }
 
-  /* ============================================================
-     4. RECENT ACTIVITY
-     ============================================================ */
+  /* ══ Recent activity ══════════════════════════════════════════ */
   .history-panel { margin: 14px 16px 0; }
   .history-heading {
-    font-size: 11.5px;
+    font-size: 10px;
     font-weight: 700;
-    color: var(--ink-tertiary);
-    margin-bottom: 6px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 7px;
   }
   #history-list {
-    max-height: 168px;
+    max-height: 190px;
     overflow-y: auto;
-    border: 1px solid var(--outline);
-    border-radius: 8px;
-    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: 9px;
+    background: var(--paper-hi);
   }
   .hist-item {
     display: flex;
-    gap: 8px;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--outline);
+    gap: 9px;
+    padding: 9px 11px;
+    border-bottom: 1px solid var(--rule);
   }
   .hist-item:last-child { border-bottom: none; }
   .hist-dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    margin-top: 5px; flex-shrink: 0;
-    background: var(--ink-tertiary);
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+    background: var(--ink-faint);
   }
-  .hist-dot.ok    { background: var(--success); }
-  .hist-dot.alert { background: var(--error); }
-  .hist-dot.muted { background: var(--ink-tertiary); }
+  .hist-dot.ok    { background: var(--ok); }
+  .hist-dot.alert { background: var(--amber); }
+  .hist-dot.muted { background: var(--ink-faint); }
   .hist-body { min-width: 0; flex: 1; }
   .hist-label {
-    font-size: 12px; font-weight: 600; color: var(--ink-primary);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .hist-detail {
-    font-size: 11.5px; color: var(--ink-secondary);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
   }
-  .hist-detail em { font-style: normal; font-weight: 600; color: var(--ink-primary); }
-  .hist-time { font-size: 10.5px; color: var(--ink-tertiary); margin-top: 1px; }
+  .hist-detail em { font-style: normal; font-weight: 600; color: var(--ink); }
+  .hist-time { font: 10.5px var(--mono); color: var(--ink-faint); margin-top: 3px; }
 
-  /* ============================================================
-     5. MAIN ACTIONS — filled / tonal / outlined button variants
-     ============================================================ */
+  /* ══ Actions ══════════════════════════════════════════════════ */
   .actions {
     margin-top: 14px;
-    padding: 14px 16px;
-    border-top: 1px solid var(--outline);
+    padding: 14px 16px 0;
+    border-top: 1px solid var(--rule);
     display: flex;
     flex-direction: column;
     gap: 8px;
   }
-
   button {
-    font-family: var(--sans);
-    font-size: 12.5px;
-    font-weight: 600;
-    padding: 10px 13px;
-    border-radius: 8px;
+    font: 600 13px var(--sans);
+    padding: 11px 14px;
+    border-radius: 9px;
     cursor: pointer;
-    border: 1px solid transparent;
+    border: 1.5px solid transparent;
     text-align: left;
     width: 100%;
-    transition: background-color .12s ease, border-color .12s ease, color .12s ease, transform .06s ease;
+    transition: background .1s ease, border-color .1s ease, color .1s ease;
   }
   button:active { transform: translateY(1px); }
-  button:focus-visible {
-    outline: 2px solid var(--ink-primary);
-    outline-offset: 2px;
-  }
 
-  /* Filled — primary action */
   #btn-dashboard {
-    background: var(--ink-primary);
-    color: var(--on-inverse);
-    border-color: var(--ink-primary);
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
   }
-  #btn-dashboard:hover  { background: #000000; border-color: #000000; }
-  #btn-dashboard:active { background: #000000; }
+  #btn-dashboard::after { content: '→'; font-size: 14px; opacity: .75; }
+  #btn-dashboard:hover { background: #2E3035; border-color: #2E3035; }
 
-  /* Tonal — secondary action */
   #btn-backup {
-    background: var(--surface-container-high);
-    color: var(--ink-primary);
-    border-color: var(--surface-container-high);
+    background: var(--paper-hi);
+    color: var(--ink-soft);
+    border-color: var(--rule-strong);
   }
-  #btn-backup:hover  { background: var(--surface-container-highest); border-color: var(--surface-container-highest); }
-  #btn-backup:active { background: #D2D2CB; border-color: #D2D2CB; }
+  #btn-backup:hover { background: var(--rule); color: var(--ink); }
 
-  /* Outlined destructive — de-emphasized until interacted with */
   button.danger {
-    background: var(--surface);
+    background: var(--paper-hi);
     color: var(--error);
-    border-color: var(--error-outline);
+    border-color: var(--error-rule);
   }
-  button.danger:hover {
-    background: var(--error-container);
-    color: var(--on-error-container);
-    border-color: var(--error);
-  }
-  button.danger:active {
-    background: var(--error);
-    color: var(--on-inverse);
-    border-color: var(--error);
-  }
+  button.danger:hover { background: var(--error-bg); border-color: var(--error); }
 
   #action-feedback {
-    padding: 0 16px 14px;
-    font-size: 11.5px;
-    color: var(--ink-secondary);
-    min-height: 14px;
+    padding: 8px 16px 0;
+    font: 11.5px var(--mono);
+    color: var(--ink-faint);
+    min-height: 16px;
+  }
+
+  /* Local-first reminder — the same promise the onboarding page makes */
+  .popup-footer {
+    margin-top: 12px;
+    padding: 11px 16px 13px;
+    border-top: 1px solid var(--rule);
+    background: var(--paper-hi);
+    font-size: 11px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+  .popup-footer .facts { font-weight: 600; color: var(--ink-soft); }
+  .popup-footer .links { margin-top: 5px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .popup-footer a {
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--ink-faint);
+    border-bottom: 1px solid transparent;
+  }
+  .popup-footer a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
   }
 </style>
 </head>
 <body>
+  <div class="top-stripe"></div>
+
   <header>
     <img src="../icons/icon48.png" alt="">
     <div>
@@ -344,12 +320,11 @@
   </header>
 
   <div id="update-banner" class="update-banner" style="display:none;"></div>
-
   <div id="consent-banner" class="consent-banner" style="display:none;"></div>
 
-  <div id="status-card" class="status-card">
+  <div id="status-card" class="status-card" role="status" aria-live="polite">
     <div class="status-row">
-      <div class="status-dot"></div>
+      <div class="status-dot" aria-hidden="true"></div>
       <div>
         <div class="status-title" id="status-title">Checking this tab…</div>
         <div class="status-detail" id="status-detail"></div>
@@ -378,6 +353,14 @@
     <button id="btn-clear" type="button" class="danger">Clear all tracked job data</button>
   </div>
   <div id="action-feedback" aria-live="polite"></div>
+
+  <div class="popup-footer">
+    <div class="facts">No account · Data stays on this device</div>
+    <div class="links">
+      <a href="https://github.com/UprightCode-hub/SeenDisJob" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">Wisdom Ekwugha</a>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

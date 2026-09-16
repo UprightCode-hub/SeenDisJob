@@ -1,72 +1,839 @@
+<!--
+  FILE: dashboard/dashboard.html
+  v1.5.0 — brought into the onboarding v1.5 visual system.
+
+  Visual-only pass. dashboard.js is NOT modified: every ID it reads, the
+  `hidden` attribute contract on tabpanels, and every class it generates
+  (.activity-item/.act-*, .trust-row/.btn-flip/.pill, table th[data-key]/
+  .sort-arrow/.title-cell/.company-cell/.date-cell/.src-link,
+  .app-breakdown .easy-num/.adv-num/.dot, .highlight-value .sub,
+  .empty-state, .settings-row/.settings-label, .check-result.ok/.no)
+  is preserved.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>SeenDisJob — Dashboard</title>
 <style>
-:root {
-  --page-bg:#EFEEEA; --surface:#FFFFFF; --surface-container:#F5F4F0; --surface-container-high:#ECEBE7;
-  --ink:#17181B; --ink-secondary:#55585E; --ink-muted:#8A8D93;
-  --outline:#D9D7D0; --outline-strong:#C7C4BB;
-  --success:#1E8E3E; --success-bg:#E9F6EC;
-  --warning:#B8860B; --warning-bg:#FBF3DC;
-  --error:#C93C4E; --error-bg:#FBEAEC;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
-}
-*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}body{background:var(--page-bg);color:var(--ink);font:14px/1.5 var(--sans);min-height:100vh}
-.top-stripe{height:3px;background:var(--ink)}.brand-row{display:flex;align-items:center;gap:11px;padding:16px 32px}.brand-mark{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;overflow:hidden;border:1px solid var(--outline)}.brand-mark img{display:block;width:100%;height:100%}.brand-name{font-size:14px;font-weight:700}.brand-sub{font-size:11.5px;color:var(--ink-muted);margin-top:1px}
-.tabbar-wrap{position:sticky;top:0;z-index:20;background:var(--page-bg);display:flex;justify-content:flex-start;padding:0 32px}.tabbar{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--outline-strong)}.tab-btn,button{font:600 12.5px var(--sans);cursor:pointer}.tab-btn{padding:10px 13px;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--ink-secondary)}.tab-btn:hover{background:var(--surface-container-high);color:var(--ink)}.tab-btn[aria-selected=true]{background:var(--ink);color:var(--surface);border-bottom-color:var(--ink)}
-.page{max-width:920px;margin:0 auto;padding:24px 32px 100px}section[role=tabpanel]{display:none}section[role=tabpanel]:not([hidden]){display:block}h2.section-title{font-size:19px;margin:0 0 4px}p.section-lede{color:var(--ink-secondary);margin:0 0 18px;max-width:58ch;font-size:13px}.consent-banner{padding:11px 14px;border-radius:8px;background:var(--warning-bg);border:1px solid var(--warning);font-size:13px;color:var(--ink-secondary)}.consent-banner a{color:var(--ink);font-weight:600}
-.dashboard-actions{margin-left:auto;display:flex;align-items:center;gap:10px}.refresh-button{padding:7px 12px;border:1px solid var(--outline-strong);border-radius:8px;background:var(--surface);color:var(--ink-secondary);font:600 12px var(--sans);cursor:pointer}.refresh-button:hover{background:var(--ink);color:var(--surface);border-color:var(--ink)}.refresh-status{font-size:11px;color:var(--ink-muted)}
-.update-banner{padding:11px 14px;border-radius:8px;background:var(--success-bg);border:1px solid var(--success);font-size:13px;color:var(--ink-secondary);margin-bottom:16px}.update-banner a{color:var(--ink);font-weight:600}
-.overview-hero,.app-hero,.card{background:var(--surface);border:1px solid var(--outline);border-radius:8px;overflow:hidden}.overview-hero{padding:22px 24px;margin-bottom:20px}.overview-heading{font-size:12px;font-weight:700;color:var(--ink-secondary);margin-bottom:16px;text-transform:uppercase;letter-spacing:.03em}.overview-body{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;flex-wrap:wrap}.hero-metric .stat-num{font:700 44px/1 var(--mono);color:var(--ink)}.hero-metric .stat-label{font-size:13px;color:var(--ink-secondary);margin-top:6px}.support-stats{display:flex;flex-direction:column;gap:10px;flex:1 1 200px;min-width:180px}.support-stat{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding-bottom:8px;border-bottom:1px solid var(--outline)}.support-stat:last-child{border-bottom:0;padding-bottom:0}.support-stat .stat-num{font:700 18px var(--mono)}.support-stat .stat-num.ok{color:var(--success)}.support-stat .stat-label{font-size:12.5px;color:var(--ink-secondary)}.stat-footnote{margin-top:14px;font-size:11.5px;color:var(--ink-muted)}
-.empty-state{padding:24px 20px;text-align:center;color:var(--ink-secondary);font-size:13px}.card+.card{margin-top:14px}.activity-item{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--outline)}.activity-item:last-child{border-bottom:0}.act-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0;background:var(--ink-muted)}.act-dot.ok{background:var(--success)}.act-dot.alert{background:var(--warning)}.act-dot.muted{background:var(--ink-muted)}.act-body{min-width:0;flex:1}.act-title{font-size:13.5px;font-weight:600}.act-detail{font-size:12.5px;color:var(--ink-secondary);margin-top:2px}.act-time{font-size:11px;color:var(--ink-muted);margin-top:4px}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}.search-input{font:13px var(--sans);padding:8px 12px;border:1px solid var(--outline-strong);border-radius:8px;background:var(--surface);color:var(--ink);width:240px}.search-input:focus-visible{outline:2px solid var(--ink);outline-offset:1px}.toolbar-count{font-size:12px;color:var(--ink-muted)}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);padding:9px 16px;border-bottom:1px solid var(--outline-strong);cursor:pointer;background:var(--surface-container)}td{padding:10px 16px;border-bottom:1px solid var(--outline);vertical-align:top}tr:nth-child(even) td{background:var(--surface-container)}td.title-cell{font-weight:600}td.company-cell{color:var(--ink-secondary)}td.date-cell{color:var(--ink-muted);font-family:var(--mono);font-size:12px;white-space:nowrap}.src-link{color:var(--ink-secondary);text-decoration:none;border-bottom:1px dotted var(--outline-strong)}.src-link:hover{color:var(--ink)}
-.trust-row,.settings-row,.highlight-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--outline)}.trust-row:last-child,.settings-row:last-child,.highlight-row:last-child{border-bottom:0}.trust-host{font:12.5px var(--mono);flex:1;word-break:break-all}.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}.pill.yes{background:var(--success-bg);color:var(--success)}.pill.no{background:var(--error-bg);color:var(--error)}.btn-flip,.btn{padding:7px 12px;border-radius:8px;border:1px solid var(--outline-strong);background:var(--surface);color:var(--ink);cursor:pointer}.btn-flip:hover,.btn:hover{background:var(--ink);color:var(--surface);border-color:var(--ink)}.btn-flip:focus-visible,.btn:focus-visible,.refresh-button:focus-visible,.tab-btn:focus-visible{outline:2px solid var(--ink);outline-offset:1px}.settings-row{justify-content:space-between;gap:16px}.settings-label{font-size:13.5px;font-weight:600}.settings-desc{font-size:12px;color:var(--ink-secondary);margin-top:3px;max-width:46ch}.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}.switch input{opacity:0;width:0;height:0}.switch-track{position:absolute;inset:0;background:var(--outline-strong);border-radius:11px;cursor:pointer}.switch-track::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--surface);border-radius:50%;transition:transform .12s ease}.switch input:checked+.switch-track{background:var(--ink)}.switch input:checked+.switch-track::before{transform:translateX(16px)}.switch input:focus-visible+.switch-track{outline:2px solid var(--ink);outline-offset:2px}.settings-actions{display:flex;gap:10px;padding:14px 16px;flex-wrap:wrap}.settings-feedback{font-size:12px;color:var(--ink-muted);padding:0 16px 12px;min-height:14px}.card-heading{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);padding:13px 16px 0}.highlight-row{justify-content:space-between}.highlight-label{font-size:13px;color:var(--ink-secondary)}.highlight-value{font-size:13.5px;font-weight:600;text-align:right}.highlight-value .sub{display:block;font-size:11px;color:var(--ink-muted);font-weight:400;margin-top:2px}
-.app-hero{display:flex;align-items:stretch;flex-wrap:wrap}.app-anchor{padding:20px 22px;min-width:200px;background:var(--surface-container)}.app-period{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-muted);margin-bottom:6px}.app-total{font:700 22px var(--mono)}.app-anchor .app-total{font-size:36px}.app-breakdown{font-size:12px;color:var(--ink-secondary);margin-top:6px}.app-strip{display:flex;flex:1 1 260px;border-left:1px solid var(--outline)}.app-strip-item{flex:1;padding:18px 16px;border-left:1px solid var(--outline)}.app-strip-item:first-child{border-left:0}.app-strip-item .app-total{font-size:22px}.app-breakdown .easy-num,.app-breakdown .adv-num{color:var(--ink);font-weight:600}.app-breakdown .dot{color:var(--outline-strong);margin:0 4px}
-.privacy-text{padding:13px 16px;font-size:13px;color:var(--ink-secondary);line-height:1.6}.privacy-text ul{margin:8px 0 0;padding-left:20px}.privacy-text li{margin:4px 0}.check-result{font-size:12px;padding:0 16px 12px;min-height:14px}.check-result.ok{color:var(--success)}.check-result.no{color:var(--error)}
-.about-list{padding:13px 16px;font-size:13px;color:var(--ink-secondary);line-height:1.6}.about-row{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid var(--outline)}.about-row:last-child{border-bottom:0}.about-label{color:var(--ink-muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em}.about-value{font-weight:600;color:var(--ink);text-align:right}.about-value a{color:var(--ink);text-decoration:none;border-bottom:1px dotted var(--outline-strong)}.about-value a:hover{border-bottom-style:solid}.about-oss-note{padding:0 16px 13px;font-size:12px;color:var(--ink-muted)}
-.support-text{padding:13px 16px;font-size:13px;color:var(--ink-secondary);line-height:1.6}.support-placeholder{display:block;margin:4px 16px 13px;padding:11px 13px;border:1px dashed var(--outline-strong);border-radius:8px;background:var(--surface-container);font:12px var(--mono);color:var(--ink-secondary);word-break:break-all;text-decoration:none;cursor:default}.support-note{padding:0 16px 13px;font-size:12px;color:var(--ink-muted)}
-button:active{transform:translateY(1px)}
-@media(max-width:640px){.page{padding-left:18px;padding-right:18px}.brand-row{padding-left:18px;padding-right:18px}.tabbar-wrap{padding:0 18px}.tabbar{overflow-x:auto;max-width:100%}.tab-btn{white-space:nowrap}.app-hero{flex-direction:column}.app-strip{border-left:0;border-top:1px solid var(--outline)}.about-row{flex-direction:column;gap:2px}.about-value{text-align:left}}
+  :root {
+    /* Shared palette with onboarding.html / popup.html */
+    --paper:       #F5F4F0;
+    --paper-hi:    #FDFCFA;
+    --surface:     #FFFFFF;
+    --ink:         #17181B;
+    --ink-soft:    #55585E;
+    --ink-faint:   #8A8D93;
+    --rule:        #D9D7D0;
+    --rule-strong: #C7C4BB;
+    --ok:          #1E8E3E;
+    --ok-bg:       #E9F6EC;
+    --ok-rule:     #C3E0CC;
+    --amber:       #B8860B;
+    --amber-bg:    #FDF6E3;
+    --amber-rule:  #E8D9A0;
+    --error:       #A5231B;
+    --error-bg:    #F6D9D6;
+    --error-rule:  #E3AFA9;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+    --shell:  1180px;
+    --gutter: clamp(18px, 4vw, 48px);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 14.5px/1.55 var(--sans);
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
+  }
+
+  .top-stripe { height: 3px; background: var(--ink); }
+
+  .shell {
+    width: 100%;
+    max-width: var(--shell);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  a { color: var(--ink); }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  .switch input:focus-visible + .switch-track {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* ══ Header ═══════════════════════════════════════════════════ */
+  .site-header {
+    background: var(--paper-hi);
+    border-bottom: 1px solid var(--rule);
+    padding-block: 20px 18px;
+  }
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand-mark {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    background: var(--ink);
+    flex-shrink: 0;
+  }
+  .brand-mark img { display: block; width: 100%; height: 100%; }
+  .brand-name { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand-sub {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+  .dashboard-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .refresh-status { font-size: 11.5px; color: var(--ink-faint); font-family: var(--mono); }
+  .refresh-button {
+    padding: 8px 15px;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 8px;
+    background: var(--paper-hi);
+    color: var(--ink-soft);
+    font: 600 12.5px var(--sans);
+    cursor: pointer;
+    transition: background .1s ease, color .1s ease, border-color .1s ease;
+  }
+  .refresh-button:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  .assurances {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px 9px;
+    margin-top: 14px;
+  }
+  .assurances li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 11px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    background: var(--paper);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .assurances svg { flex-shrink: 0; }
+
+  /* ══ Section navigation ═══════════════════════════════════════ */
+  .tabbar-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--paper-hi);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .tabbar { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+  .tabbar::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    padding: 13px 15px 11px;
+    border: 0;
+    border-bottom: 2.5px solid transparent;
+    background: transparent;
+    color: var(--ink-faint);
+    font: 600 13px var(--sans);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color .12s ease, border-color .12s ease;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn[aria-selected="true"] {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* ══ Content ══════════════════════════════════════════════════ */
+  .page { padding-block: clamp(24px, 3.5vw, 40px) 56px; width: 100%; }
+  section[role="tabpanel"] { display: none; }
+  section[role="tabpanel"]:not([hidden]) { display: block; }
+
+  .section-title {
+    font-size: clamp(22px, 2.6vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.026em;
+    margin-bottom: 6px;
+  }
+  .section-lede {
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin-bottom: 22px;
+    font-size: 14.5px;
+  }
+
+  .consent-banner,
+  .update-banner {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .consent-banner {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-rule);
+    color: var(--ink-soft);
+  }
+  .update-banner {
+    background: var(--ok-bg);
+    border: 1px solid var(--ok-rule);
+    color: var(--ink-soft);
+  }
+  .consent-banner a, .update-banner a { color: var(--ink); font-weight: 700; }
+
+  /* Shared surface — one treatment, no card-on-card stacking */
+  .card,
+  .overview-hero,
+  .app-hero {
+    background: var(--paper-hi);
+    border: 1px solid var(--rule-strong);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card + .card { margin-top: 16px; }
+
+  .card-heading,
+  .overview-heading,
+  .app-period {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .card-heading { padding: 16px 18px 0; }
+
+  /* ── Overview ─────────────────────────────────────────────── */
+  .overview-hero { padding: 26px 28px; margin-bottom: 18px; }
+  .overview-heading { margin-bottom: 20px; }
+  .overview-body {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: clamp(28px, 5vw, 64px);
+    flex-wrap: wrap;
+  }
+  .hero-metric { flex: 0 1 auto; }
+  .hero-metric .stat-num {
+    font: 700 clamp(52px, 8vw, 76px)/0.95 var(--mono);
+    letter-spacing: -0.04em;
+  }
+  .hero-metric .stat-label {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+  .support-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1 1 260px;
+    min-width: 220px;
+  }
+  .support-stat {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .support-stat:last-child { border-bottom: 0; padding-bottom: 0; }
+  .support-stat .stat-num { font: 700 20px var(--mono); }
+  .support-stat .stat-num.ok { color: var(--ok); }
+  .support-stat .stat-label { font-size: 13px; color: var(--ink-soft); }
+  .stat-footnote { margin-top: 18px; font-size: 12px; color: var(--ink-faint); }
+
+  /* ── Applications ─────────────────────────────────────────── */
+  .app-hero { display: flex; flex-wrap: wrap; }
+  .app-anchor {
+    padding: 24px 26px;
+    min-width: 230px;
+    background: var(--paper);
+    border-right: 1px solid var(--rule);
+  }
+  .app-anchor .app-total { font-size: clamp(38px, 5vw, 50px); letter-spacing: -0.035em; }
+  .app-total { font: 700 24px/1 var(--mono); margin-top: 8px; }
+  .app-breakdown { font-size: 12.5px; color: var(--ink-soft); margin-top: 8px; }
+  .app-breakdown .easy-num,
+  .app-breakdown .adv-num { color: var(--ink); font-weight: 700; font-family: var(--mono); }
+  .app-breakdown .dot { color: var(--rule-strong); margin: 0 5px; }
+  .app-strip { display: flex; flex: 1 1 280px; }
+  .app-strip-item { flex: 1; padding: 22px 20px; border-left: 1px solid var(--rule); }
+  .app-strip-item:first-child { border-left: 0; }
+
+  .highlight-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 15px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .highlight-row:last-child { border-bottom: 0; }
+  .highlight-label { font-size: 13px; color: var(--ink-soft); }
+  .highlight-value { font-size: 14px; font-weight: 700; text-align: right; }
+  .highlight-value .sub {
+    display: block;
+    font: 400 11.5px var(--mono);
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+
+  /* ── Activity ─────────────────────────────────────────────── */
+  .empty-state {
+    padding: 34px 20px;
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 13.5px;
+  }
+  .activity-item {
+    display: flex;
+    gap: 13px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .activity-item:last-child { border-bottom: 0; }
+  .act-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+    background: var(--ink-faint);
+  }
+  .act-dot.ok { background: var(--ok); }
+  .act-dot.alert { background: var(--amber); }
+  .act-dot.muted { background: var(--ink-faint); }
+  .act-body { min-width: 0; flex: 1; }
+  .act-title { font-size: 14px; font-weight: 600; }
+  .act-detail { font-size: 13px; color: var(--ink-soft); margin-top: 2px; }
+  .act-detail em { font-style: normal; font-weight: 600; color: var(--ink); }
+  .act-time { font: 11px var(--mono); color: var(--ink-faint); margin-top: 5px; }
+
+  /* ── Postings table ───────────────────────────────────────── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    font: 13.5px var(--sans);
+    padding: 9px 13px;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 9px;
+    background: var(--paper-hi);
+    color: var(--ink);
+    width: min(320px, 100%);
+  }
+  .search-input::placeholder { color: var(--ink-faint); }
+  .toolbar-count { font: 12px var(--mono); color: var(--ink-faint); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th {
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--paper);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  th:hover { color: var(--ink); }
+  .sort-arrow { color: var(--ink); font-size: 9px; }
+  td { padding: 12px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.title-cell { font-weight: 600; }
+  td.company-cell { color: var(--ink-soft); }
+  td.date-cell { color: var(--ink-faint); font: 12px var(--mono); white-space: nowrap; }
+  .src-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--rule-strong); }
+  .src-link:hover { border-bottom-style: solid; }
+
+  /* ── Trust list ───────────────────────────────────────────── */
+  .trust-row, .settings-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .trust-row:last-child, .settings-row:last-child { border-bottom: 0; }
+  .trust-host { font: 13px var(--mono); flex: 1; word-break: break-all; }
+  .pill {
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+  }
+  .pill.yes { background: var(--ok-bg); color: var(--ok); border-color: var(--ok-rule); }
+  .pill.no  { background: var(--error-bg); color: var(--error); border-color: var(--error-rule); }
+
+  /* ── Buttons ──────────────────────────────────────────────── */
+  .btn, .btn-flip {
+    padding: 9px 15px;
+    border-radius: 8px;
+    border: 1.5px solid var(--rule-strong);
+    background: var(--paper-hi);
+    color: var(--ink-soft);
+    font: 600 13px var(--sans);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .1s ease, color .1s ease, border-color .1s ease;
+  }
+  .btn:hover, .btn-flip:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn:active, .btn-flip:active, .refresh-button:active { transform: translateY(1px); }
+  .btn:disabled, .btn-flip:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* ── Settings ─────────────────────────────────────────────── */
+  .settings-row { justify-content: space-between; gap: 18px; }
+  .settings-label { font-size: 14px; font-weight: 600; }
+  .settings-desc { font-size: 13px; color: var(--ink-soft); margin-top: 4px; max-width: 54ch; }
+  .switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch-track {
+    position: absolute; inset: 0;
+    background: var(--rule-strong);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .switch-track::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 3px; top: 3px;
+    background: var(--surface);
+    border-radius: 50%;
+    transition: transform .15s ease;
+  }
+  .switch input:checked + .switch-track { background: var(--ink); }
+  .switch input:checked + .switch-track::before { transform: translateX(18px); }
+
+  .settings-actions { display: flex; gap: 10px; padding: 16px 18px; flex-wrap: wrap; }
+  .settings-feedback {
+    font: 12.5px var(--mono);
+    color: var(--ink-faint);
+    padding: 0 18px 14px;
+    min-height: 16px;
+  }
+  .privacy-text { padding: 14px 18px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.65; }
+  .privacy-text ul { margin: 10px 0 0; padding-left: 20px; }
+  .privacy-text li { margin: 5px 0; }
+  .check-result { font: 12.5px var(--mono); padding: 0 18px 14px; min-height: 16px; }
+  .check-result.ok { color: var(--ok); }
+  .check-result.no { color: var(--error); }
+
+  /* ── About / Support ──────────────────────────────────────── */
+  .about-list { padding: 14px 18px; font-size: 13.5px; color: var(--ink-soft); }
+  .about-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .about-row:last-child { border-bottom: 0; }
+  .about-label {
+    color: var(--ink-faint);
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-top: 3px;
+  }
+  .about-value { font-weight: 600; color: var(--ink); text-align: right; }
+  .about-value a { text-decoration: none; border-bottom: 1px dotted var(--rule-strong); }
+  .about-value a:hover { border-bottom-style: solid; }
+  .about-oss-note { padding: 0 18px 16px; font-size: 12.5px; color: var(--ink-faint); }
+
+  .support-text { padding: 14px 18px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.65; }
+  .support-placeholder {
+    display: block;
+    margin: 4px 18px 14px;
+    padding: 12px 14px;
+    border: 1px dashed var(--rule-strong);
+    border-radius: 9px;
+    background: var(--paper);
+    font: 12px var(--mono);
+    color: var(--ink-faint);
+    word-break: break-all;
+    text-decoration: none;
+    cursor: default;
+  }
+  .support-note { padding: 0 18px 16px; font-size: 12.5px; color: var(--ink-faint); }
+
+  /* ══ Footer ═══════════════════════════════════════════════════ */
+  .site-footer {
+    background: var(--paper-hi);
+    border-top: 1px solid var(--rule);
+    padding-block: 26px 30px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .footer-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 40px;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .footer-product strong { color: var(--ink); font-weight: 700; }
+  .footer-facts {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+  .footer-facts li + li::before { content: '·'; margin-right: 14px; color: var(--rule-strong); }
+  .footer-links { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .footer-links a {
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+  }
+  .footer-links a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+  .footer-credit {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+  .footer-credit a { color: var(--ink-soft); font-weight: 600; }
+
+  /* ══ Responsive ═══════════════════════════════════════════════ */
+  @media (max-width: 760px) {
+    .dashboard-actions { margin-left: 0; width: 100%; justify-content: space-between; }
+    .overview-body { flex-direction: column; align-items: flex-start; gap: 26px; }
+    .support-stats { width: 100%; }
+    .app-anchor { border-right: 0; border-bottom: 1px solid var(--rule); width: 100%; }
+    .app-strip { flex-wrap: wrap; }
+    .app-strip-item { flex: 1 1 50%; border-left: 0; border-top: 1px solid var(--rule); }
+    .about-row { flex-direction: column; gap: 3px; }
+    .about-value { text-align: left; }
+    .highlight-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .highlight-value { text-align: left; }
+    .footer-grid { flex-direction: column; gap: 14px; }
+    th, td { padding-inline: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
 </style>
 </head>
 <body>
 <div class="top-stripe"></div>
-<div class="brand-row"><div class="brand-mark"><img src="../icons/icon48.png" alt=""></div><div><div class="brand-name">SeenDisJob</div><div class="brand-sub">Dashboard</div></div><div class="dashboard-actions"><span class="refresh-status" id="refresh-status" aria-live="polite"></span><button class="refresh-button" id="btn-refresh" type="button" title="Refresh dashboard">Refresh</button></div></div>
-<div class="tabbar-wrap"><div class="tabbar" role="tablist" aria-label="Dashboard sections">
-<button class="tab-btn" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview">Overview</button>
-<button class="tab-btn" role="tab" id="tab-applications" aria-selected="false" aria-controls="panel-applications">Applications</button>
-<button class="tab-btn" role="tab" id="tab-activity" aria-selected="false" aria-controls="panel-activity">Recent activity</button>
-<button class="tab-btn" role="tab" id="tab-postings" aria-selected="false" aria-controls="panel-postings">Tracked postings</button>
-<button class="tab-btn" role="tab" id="tab-trust" aria-selected="false" aria-controls="panel-trust">Site trust</button>
-<button class="tab-btn" role="tab" id="tab-settings" aria-selected="false" aria-controls="panel-settings">Settings</button>
-</div></div>
-<div class="page">
-<div id="update-banner" class="update-banner" style="display:none"></div>
-<div id="consent-banner" class="consent-banner" style="display:none"></div>
-<section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview"><h2 class="section-title">Overview</h2><p class="section-lede">What this has caught for you, in total — not just what is currently in the 60-day window.</p><div class="overview-hero"><div class="overview-heading">Lifetime totals</div><div class="overview-body"><div class="hero-metric"><div class="stat-num" id="stat-duplicates">–</div><div class="stat-label">duplicates caught</div></div><div class="support-stats"><div class="support-stat"><span class="stat-label">job postings seen</span><span class="stat-num" id="stat-seen">–</span></div><div class="support-stat"><span class="stat-label">listings currently muted</span><span class="stat-num ok" id="stat-muted">–</span></div></div></div><div class="stat-footnote" id="stat-footnote"></div></div></section>
-<section id="panel-applications" role="tabpanel" aria-labelledby="tab-applications" hidden><h2 class="section-title">Applications</h2><p class="section-lede">How many you have submitted, counted automatically — Easy Apply vs. Advanced Apply, no manual entry.</p><div class="app-hero"><div class="app-anchor"><div class="app-period">Lifetime</div><div class="app-total" id="app-total-lifetime">–</div><div class="app-breakdown" id="app-breakdown-lifetime"></div></div><div class="app-strip"><div class="app-strip-item"><div class="app-period">Today</div><div class="app-total" id="app-total-day">–</div><div class="app-breakdown" id="app-breakdown-day"></div></div><div class="app-strip-item"><div class="app-period">This week</div><div class="app-total" id="app-total-week">–</div><div class="app-breakdown" id="app-breakdown-week"></div></div><div class="app-strip-item"><div class="app-period">This month</div><div class="app-total" id="app-total-month">–</div><div class="app-breakdown" id="app-breakdown-month"></div></div></div></div><div class="stat-footnote">Week resets Sunday · month resets on the 1st.</div><div class="card" style="margin-top:20px"><div class="highlight-row"><div class="highlight-label">Most active day</div><div class="highlight-value" id="app-most-active-day">—</div></div><div class="highlight-row"><div class="highlight-label">Most-used source platform</div><div class="highlight-value" id="app-most-visited-platform">—</div></div></div></section>
-<section id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" hidden><h2 class="section-title">Recent activity</h2><p class="section-lede">The full log — the popup only shows the 4 most recent entries.</p><div class="card" id="activity-card"><div class="empty-state">No activity yet.</div></div></section>
-<section id="panel-postings" role="tabpanel" aria-labelledby="tab-postings" hidden><h2 class="section-title">Tracked postings</h2><p class="section-lede">Every listing currently in the 60-day tracking window.</p><div class="toolbar"><input type="text" id="postings-search" class="search-input" placeholder="Filter by title or company…"><span class="toolbar-count" id="postings-count"></span></div><div class="card" id="postings-card"></div></section>
-<section id="panel-trust" role="tabpanel" aria-labelledby="tab-trust" hidden><h2 class="section-title">Site trust list</h2><p class="section-lede">Sites you were asked about and answered for.</p><div class="card" id="trust-card"><div class="empty-state">No sites asked about yet.</div></div></section>
-<section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden><h2 class="section-title">Settings</h2><p class="section-lede">Control site questions and stored data.</p><div class="card"><div class="settings-row"><div><div class="settings-label">Ask me about sites I visit</div><div class="settings-desc">When a page looks job-shaped but is not a known site, show a one-time confirmation popup.</div></div><label class="switch"><input type="checkbox" id="toggle-ask-sites"><span class="switch-track"></span></label></div></div><div class="card" style="margin-top:16px"><div class="card-heading">Data</div><div class="settings-actions"><button class="btn" id="btn-backup">Copy tracked-job backup to clipboard</button><button class="btn" id="btn-clear">Clear all tracked job data</button></div><div class="settings-feedback" id="settings-feedback"></div></div><div class="card" style="margin-top:16px"><div class="card-heading">Privacy &amp; permissions</div><div class="privacy-text"><p>SeenDisJob reads job titles and company names from the job pages you visit while it's active.</p><ul><li>Everything it collects stays in Chrome's local storage on this device.</li><li>There is no account, no server, no analytics, and no remote job database — nothing is sent anywhere.</li><li>It only reads page content after you grant content-check consent during setup.</li><li>Detection also depends on Chrome's "Allow User Scripts" permission being turned on for this extension.</li></ul></div><div class="settings-actions"><button class="btn" id="btn-reopen-setup">Reopen setup guide</button><button class="btn" id="btn-check-permission">Check User Scripts permission</button></div><div class="check-result" id="check-permission-result"></div></div>
-<div class="card" style="margin-top:16px"><div class="card-heading">About SeenDisJob</div><div class="about-list">
-<div class="about-row"><span class="about-label">Version</span><span class="about-value" id="about-version">–</span></div>
-<div class="about-row"><span class="about-label">Repository</span><span class="about-value"><a href="https://github.com/UprightCode-hub/SeenDisJob" target="_blank" rel="noopener">github.com/UprightCode-hub/SeenDisJob</a></span></div>
-<div class="about-row"><span class="about-label">License</span><span class="about-value"><a href="https://github.com/UprightCode-hub/SeenDisJob/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a></span></div>
-<div class="about-row"><span class="about-label">Created by</span><span class="about-value"><a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">Wisdom Ekwugha</a></span></div>
-</div><div class="about-oss-note">SeenDisJob is free and open source — no account, subscription, or payment is required to use it.</div></div>
-<div class="card" style="margin-top:16px"><div class="card-heading">Support SeenDisJob</div><div class="support-text"><p>If SeenDisJob has been useful in your job search, you're welcome to support its development. This is entirely optional and never required to use the extension.</p></div>
-<!-- To enable donations: replace the href below (and the visible text, if desired)
-     with a real GitHub Sponsors, Ko-fi, or Buy Me a Coffee URL. Nothing else
-     on this page needs to change. -->
-<a class="support-placeholder" id="support-donation-link" href="DONATION_LINK_PLACEHOLDER" rel="noopener">DONATION_LINK_PLACEHOLDER</a>
-<div class="support-note">A real GitHub Sponsors, Ko-fi, or Buy Me a Coffee link will replace the placeholder above once one exists.</div></div>
-</section>
+
+<header class="site-header">
+  <div class="shell">
+    <div class="header-row">
+      <div class="brand">
+        <div class="brand-mark"><img src="../icons/icon48.png" alt=""></div>
+        <div>
+          <div class="brand-name">SeenDisJob</div>
+          <div class="brand-sub">Dashboard</div>
+        </div>
+      </div>
+      <div class="dashboard-actions">
+        <span class="refresh-status" id="refresh-status" aria-live="polite"></span>
+        <button class="refresh-button" id="btn-refresh" type="button" title="Refresh dashboard">Refresh</button>
+      </div>
+    </div>
+    <ul class="assurances">
+      <li>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#55585E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        No account required
+      </li>
+      <li>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#55585E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Everything below is read from this device's local storage
+      </li>
+      <li>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#55585E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        No server, no sync, no analytics
+      </li>
+    </ul>
+  </div>
+</header>
+
+<div class="tabbar-wrap">
+  <div class="shell">
+    <div class="tabbar" role="tablist" aria-label="Dashboard sections">
+      <button class="tab-btn" role="tab" id="tab-overview" aria-selected="true" aria-controls="panel-overview">Overview</button>
+      <button class="tab-btn" role="tab" id="tab-applications" aria-selected="false" aria-controls="panel-applications">Applications</button>
+      <button class="tab-btn" role="tab" id="tab-activity" aria-selected="false" aria-controls="panel-activity">Recent activity</button>
+      <button class="tab-btn" role="tab" id="tab-postings" aria-selected="false" aria-controls="panel-postings">Tracked postings</button>
+      <button class="tab-btn" role="tab" id="tab-trust" aria-selected="false" aria-controls="panel-trust">Site trust</button>
+      <button class="tab-btn" role="tab" id="tab-settings" aria-selected="false" aria-controls="panel-settings">Settings</button>
+    </div>
+  </div>
 </div>
+
+<main class="page">
+  <div class="shell">
+
+    <div id="update-banner" class="update-banner" style="display:none"></div>
+    <div id="consent-banner" class="consent-banner" style="display:none"></div>
+
+    <!-- ── Overview ─────────────────────────────────────────── -->
+    <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <h2 class="section-title">Overview</h2>
+      <p class="section-lede">What this has caught for you, in total — not just what is currently in the 60-day window.</p>
+      <div class="overview-hero">
+        <div class="overview-heading">Lifetime totals</div>
+        <div class="overview-body">
+          <div class="hero-metric">
+            <div class="stat-num" id="stat-duplicates">–</div>
+            <div class="stat-label">duplicates caught</div>
+          </div>
+          <div class="support-stats">
+            <div class="support-stat">
+              <span class="stat-label">job postings seen</span>
+              <span class="stat-num" id="stat-seen">–</span>
+            </div>
+            <div class="support-stat">
+              <span class="stat-label">listings currently muted</span>
+              <span class="stat-num ok" id="stat-muted">–</span>
+            </div>
+          </div>
+        </div>
+        <div class="stat-footnote" id="stat-footnote"></div>
+      </div>
+    </section>
+
+    <!-- ── Applications ─────────────────────────────────────── -->
+    <section id="panel-applications" role="tabpanel" aria-labelledby="tab-applications" hidden>
+      <h2 class="section-title">Applications</h2>
+      <p class="section-lede">How many you have submitted, counted automatically — Easy Apply vs. Advanced Apply, no manual entry.</p>
+      <div class="app-hero">
+        <div class="app-anchor">
+          <div class="app-period">Lifetime</div>
+          <div class="app-total" id="app-total-lifetime">–</div>
+          <div class="app-breakdown" id="app-breakdown-lifetime"></div>
+        </div>
+        <div class="app-strip">
+          <div class="app-strip-item">
+            <div class="app-period">Today</div>
+            <div class="app-total" id="app-total-day">–</div>
+            <div class="app-breakdown" id="app-breakdown-day"></div>
+          </div>
+          <div class="app-strip-item">
+            <div class="app-period">This week</div>
+            <div class="app-total" id="app-total-week">–</div>
+            <div class="app-breakdown" id="app-breakdown-week"></div>
+          </div>
+          <div class="app-strip-item">
+            <div class="app-period">This month</div>
+            <div class="app-total" id="app-total-month">–</div>
+            <div class="app-breakdown" id="app-breakdown-month"></div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-footnote">Week resets Sunday · month resets on the 1st.</div>
+      <div class="card" style="margin-top:22px">
+        <div class="card-heading">Patterns</div>
+        <div style="height:12px"></div>
+        <div class="highlight-row">
+          <div class="highlight-label">Most active day</div>
+          <div class="highlight-value" id="app-most-active-day">—</div>
+        </div>
+        <div class="highlight-row">
+          <div class="highlight-label">Most-used source platform</div>
+          <div class="highlight-value" id="app-most-visited-platform">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Recent activity ──────────────────────────────────── -->
+    <section id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" hidden>
+      <h2 class="section-title">Recent activity</h2>
+      <p class="section-lede">The full log — the popup only shows the 4 most recent entries.</p>
+      <div class="card" id="activity-card"><div class="empty-state">No activity yet.</div></div>
+    </section>
+
+    <!-- ── Tracked postings ─────────────────────────────────── -->
+    <section id="panel-postings" role="tabpanel" aria-labelledby="tab-postings" hidden>
+      <h2 class="section-title">Tracked postings</h2>
+      <p class="section-lede">Every listing currently in the 60-day tracking window.</p>
+      <div class="toolbar">
+        <input type="text" id="postings-search" class="search-input" placeholder="Filter by title or company…" aria-label="Filter tracked postings">
+        <span class="toolbar-count" id="postings-count"></span>
+      </div>
+      <div class="card" id="postings-card"></div>
+    </section>
+
+    <!-- ── Site trust ───────────────────────────────────────── -->
+    <section id="panel-trust" role="tabpanel" aria-labelledby="tab-trust" hidden>
+      <h2 class="section-title">Site trust list</h2>
+      <p class="section-lede">Sites you were asked about and answered for.</p>
+      <div class="card" id="trust-card"><div class="empty-state">No sites asked about yet.</div></div>
+    </section>
+
+    <!-- ── Settings ─────────────────────────────────────────── -->
+    <section id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+      <h2 class="section-title">Settings</h2>
+      <p class="section-lede">Control site questions and stored data.</p>
+
+      <div class="card">
+        <div class="settings-row">
+          <div>
+            <div class="settings-label">Ask me about sites I visit</div>
+            <div class="settings-desc">When a page looks job-shaped but is not a known site, show a one-time confirmation popup.</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-ask-sites">
+            <span class="switch-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-heading">Data</div>
+        <div class="settings-actions">
+          <button class="btn" id="btn-backup">Copy tracked-job backup to clipboard</button>
+          <button class="btn" id="btn-clear">Clear all tracked job data</button>
+        </div>
+        <div class="settings-feedback" id="settings-feedback" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-heading">Privacy &amp; permissions</div>
+        <div class="privacy-text">
+          <p>SeenDisJob reads job titles and company names from the job pages you visit while it's active.</p>
+          <ul>
+            <li>Everything it collects stays in Chrome's local storage on this device.</li>
+            <li>There is no account, no server, no analytics, and no remote job database — nothing is sent anywhere.</li>
+            <li>It only reads page content after you grant content-check consent during setup.</li>
+            <li>Detection also depends on Chrome's "Allow User Scripts" permission being turned on for this extension.</li>
+          </ul>
+        </div>
+        <div class="settings-actions">
+          <button class="btn" id="btn-reopen-setup">Reopen setup guide</button>
+          <button class="btn" id="btn-check-permission">Check User Scripts permission</button>
+        </div>
+        <div class="check-result" id="check-permission-result" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-heading">About SeenDisJob</div>
+        <div class="about-list">
+          <div class="about-row">
+            <span class="about-label">Version</span>
+            <span class="about-value" id="about-version">–</span>
+          </div>
+          <div class="about-row">
+            <span class="about-label">Repository</span>
+            <span class="about-value"><a href="https://github.com/UprightCode-hub/SeenDisJob" target="_blank" rel="noopener">github.com/UprightCode-hub/SeenDisJob</a></span>
+          </div>
+          <div class="about-row">
+            <span class="about-label">License</span>
+            <span class="about-value"><a href="https://github.com/UprightCode-hub/SeenDisJob/blob/main/LICENSE" target="_blank" rel="noopener">MIT</a></span>
+          </div>
+          <div class="about-row">
+            <span class="about-label">Created by</span>
+            <span class="about-value"><a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">Wisdom Ekwugha</a></span>
+          </div>
+          <div class="about-row">
+            <span class="about-label">Distribution</span>
+            <span class="about-value">Unpacked source install</span>
+          </div>
+        </div>
+        <div class="about-oss-note">SeenDisJob is free and open source — no account, subscription, or payment is required to use it.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-heading">Support SeenDisJob</div>
+        <div class="support-text">
+          <p>If SeenDisJob has been useful in your job search, you're welcome to support its development. This is entirely optional and never required to use the extension.</p>
+        </div>
+        <!-- To enable donations: replace the href below (and the visible text, if desired)
+             with a real GitHub Sponsors, Ko-fi, or Buy Me a Coffee URL. Nothing else
+             on this page needs to change. -->
+        <a class="support-placeholder" id="support-donation-link" href="DONATION_LINK_PLACEHOLDER" rel="noopener">DONATION_LINK_PLACEHOLDER</a>
+        <div class="support-note">A real GitHub Sponsors, Ko-fi, or Buy Me a Coffee link will replace the placeholder above once one exists.</div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-grid">
+      <div class="footer-product">
+        <strong>SeenDisJob</strong> — free and open source.
+        <ul class="footer-facts">
+          <li>MIT licensed</li>
+          <li>No account required</li>
+          <li>Data stays on this device</li>
+        </ul>
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://github.com/UprightCode-hub/SeenDisJob" target="_blank" rel="noopener">GitHub repository</a></li>
+        <li><a href="https://github.com/UprightCode-hub/SeenDisJob/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
+        <li><a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </div>
+    <!-- Additional social links intentionally omitted: no verified URLs exist. -->
+    <p class="footer-credit">
+      Created by <a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">Wisdom Ekwugha</a>.
+      Installed from source as an unpacked extension — not distributed through the Chrome Web Store.
+    </p>
+  </div>
+</footer>
+
 <script src="dashboard.js"></script>
 </body>
 </html>

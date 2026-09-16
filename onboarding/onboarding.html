@@ -1,19 +1,30 @@
 <!--
   FILE: onboarding/onboarding.html
-  v1.4.0 — ported to the Material 3 tonal system already used in
-  popup.html/engine.js (solid surfaces, no blur/gradients/translucency).
-  IDs and onboarding.js behavior remain unchanged. The hero caption
-  remains accessible to screen readers.
+  v1.5.0 — full-viewport setup layout.
+
+  Visual-only pass. onboarding.js is NOT modified by this change: every ID
+  it reads (screen-consent, screen-declined, screen-guide, guide-steps,
+  guide-status, pin-step, progress-consent, progress-permissions,
+  consent-error, btn-consent-yes/-no, btn-close-1/-2, btn-open-extensions,
+  btn-check-again, btn-reconsider, btn-pin-confirm) is preserved, as are
+  the .hidden toggle contract and the #guide-status "show/ok/pending"
+  class contract.
+
+  The rail now shows all five real setup stages. onboarding.js still owns
+  only the two it always owned (Privacy, Browser permission) via
+  data-state. The other three are derived presentationally with :has()
+  from state the JS already produces — no new script, no new listeners.
 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>SeenDisJob — Setup</title>
 <style>
   :root {
-    /* ── Exact palette from popup.html + engine.js ─────────────── */
+    /* ── Palette unchanged from popup.html + engine.js ─────────── */
     --paper:       #F5F4F0;
     --paper-hi:    #FDFCFA;
     --ink:         #17181B;
@@ -24,16 +35,21 @@
     --ok:          #1E8E3E;
     --ok-bg:       #E9F6EC;
     --ok-rule:     #C3E0CC;
-    --amber:       #B8860B;   /* v1.2.0 badge + HUD warning colour */
+    --amber:       #B8860B;   /* the single accent */
     --amber-bg:    #FDF6E3;
     --amber-rule:  #E8D9A0;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
             Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono",
             Menlo, Consolas, monospace;
+
+    --shell:   1180px;  /* outer max width */
+    --gutter:  clamp(20px, 5vw, 56px);
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { -webkit-text-size-adjust: 100%; }
 
   body {
     background: var(--paper);
@@ -41,54 +57,285 @@
     font-family: var(--sans);
     font-size: 15px;
     line-height: 1.6;
+    /* Full-height shell: header / progress / content / footer.
+       Content row takes the slack so short screens still fill the
+       viewport and the footer sits at the bottom, not mid-page. */
     min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto;
   }
 
-  /* ── Brand stripe ────────────────────────────────────────────── */
   .top-stripe { height: 3px; background: var(--ink); }
 
-  /* ── Page container ──────────────────────────────────────────── */
-  .page {
-    max-width: 580px;
+  /* Shared horizontal rhythm for every band */
+  .shell {
+    width: 100%;
+    max-width: var(--shell);
     margin: 0 auto;
-    padding: 44px 32px 80px;
+    padding-inline: var(--gutter);
   }
 
-  /* ── Brand mark ──────────────────────────────────────────────── */
+  a { color: var(--ink); }
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+
+  /* ══ 1. Branded header ════════════════════════════════════════ */
+  .site-header {
+    background: var(--paper-hi);
+    border-bottom: 1px solid var(--rule);
+    padding-block: clamp(28px, 5vw, 44px) clamp(20px, 3vw, 28px);
+    text-align: center;
+  }
   .brand {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 36px;
+    gap: 12px;
   }
   .brand-mark {
-    width: 30px; height: 30px;
+    width: 40px; height: 40px;
     background: var(--ink);
-    border-radius: 8px;
+    border-radius: 11px;
     display: grid;
     place-items: center;
     flex-shrink: 0;
   }
   .brand-name {
-    font-size: 13px;
+    font-size: clamp(22px, 3vw, 27px);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.025em;
+  }
+  .brand-tagline {
+    margin-top: 10px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+  }
+  /* Three-up assurance strip — the "no account" promise, stated once,
+     high on the page, before anything is asked of the user. */
+  .assurances {
+    list-style: none;
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 10px;
+  }
+  .assurances li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 999px;
+    background: var(--paper);
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .assurances svg { flex-shrink: 0; }
+
+  /* ══ 2. Progress rail ═════════════════════════════════════════ */
+  .step-track {
+    background: var(--paper-hi);
+    border-bottom: 1px solid var(--rule);
+    padding-block: 22px;
+  }
+  ol#progress-rail {
+    display: flex;
+    list-style: none;
+    width: 100%;
+    max-width: 880px;
+    margin-inline: auto;
+  }
+  ol#progress-rail li {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-faint);
+    transition: color 0.25s ease;
+  }
+  /* Connector sits behind the dots, drawn from the previous item */
+  ol#progress-rail li + li::before {
+    content: '';
+    position: absolute;
+    top: 13px;
+    right: calc(50% + 20px);
+    left: calc(-50% + 20px);
+    height: 2px;
+    background: var(--rule);
+    transition: background 0.3s ease;
+  }
+  .rail-dot {
+    position: relative;
+    z-index: 1;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--rule-strong);
+    background: var(--paper-hi);
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    transition: background 0.25s ease, border-color 0.25s ease,
+                color 0.25s ease;
+  }
+  .rail-label { display: block; max-width: 13ch; }
+
+  /* Active — filled ink dot + ink label: never ambiguous which step you're on */
+  ol#progress-rail li[data-state="active"] { color: var(--ink); }
+  ol#progress-rail li[data-state="active"] .rail-dot {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper-hi);
   }
 
-  /* ── Hero: browser tab strip demo ────────────────────────────── */
+  /* Done — green dot, number swapped for a check */
+  ol#progress-rail li[data-state="done"] { color: var(--ok); }
+  ol#progress-rail li[data-state="done"] .rail-dot {
+    background: var(--ok);
+    border-color: var(--ok);
+    color: #FFFFFF;
+    animation: check-pop 180ms ease-out;
+  }
+  ol#progress-rail li[data-state="done"] .rail-num { display: none; }
+  ol#progress-rail li[data-state="done"] .rail-dot::after {
+    content: '✓';
+    font-size: 14px;
+    line-height: 1;
+  }
+  ol#progress-rail li[data-state="done"] + li::before { background: var(--ok); }
+  @keyframes check-pop {
+    0%   { transform: scale(0.6); }
+    100% { transform: scale(1); }
+  }
+
+  /* Derived states for the three stages onboarding.js does not own.
+     These read state the JS already sets (data-state on the two rail
+     items it controls) or already renders (#pin-step / #btn-close-2
+     visibility), so the rail stays truthful without new script. */
+  body:has(#pin-step:not(.hidden)) #progress-pin { color: var(--ink); }
+  body:has(#pin-step:not(.hidden)) #progress-pin .rail-dot {
+    background: var(--ink); border-color: var(--ink); color: var(--paper-hi);
+  }
+  body:has(#btn-close-2:not(.hidden)) #progress-pin { color: var(--ok); }
+  body:has(#btn-close-2:not(.hidden)) #progress-pin .rail-dot {
+    background: var(--ok); border-color: var(--ok); color: #FFFFFF;
+  }
+  body:has(#btn-close-2:not(.hidden)) #progress-pin .rail-num { display: none; }
+  body:has(#btn-close-2:not(.hidden)) #progress-pin .rail-dot::after {
+    content: '✓'; font-size: 14px; line-height: 1;
+  }
+  body:has(#btn-close-2:not(.hidden)) #progress-ready { color: var(--ink); }
+  body:has(#btn-close-2:not(.hidden)) #progress-ready .rail-dot {
+    background: var(--ink); border-color: var(--ink); color: var(--paper-hi);
+  }
+  body:has(#btn-close-2:not(.hidden)) #progress-pin + li::before { background: var(--ok); }
+
+  /* ══ 3. Content ═══════════════════════════════════════════════ */
+  .page {
+    padding-block: clamp(32px, 5vw, 60px) clamp(40px, 6vw, 72px);
+    width: 100%;
+  }
+
+  /* Two-column composition: decisions and controls on the left,
+     supporting explanation on the right. Collapses to one column. */
+  .screen {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: clamp(28px, 4vw, 56px);
+    align-items: start;
+  }
+  .screen--single { grid-template-columns: minmax(0, 60ch); justify-content: center; }
+  .screen-main { min-width: 0; }
+  .screen-aside { min-width: 0; }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 10px;
+  }
+  .screen h1 {
+    font-size: clamp(27px, 3.4vw, 36px);
+    font-weight: 700;
+    letter-spacing: -0.028em;
+    line-height: 1.12;
+    margin-bottom: 14px;
+    text-wrap: balance;
+  }
+  .lede {
+    color: var(--ink-soft);
+    max-width: 52ch;
+    margin-bottom: 26px;
+    font-size: 15.5px;
+  }
+
+  /* Consent reassurance, placed directly above the consent buttons */
+  .trust {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 16px;
+    background: var(--ok-bg);
+    border: 1px solid var(--ok-rule);
+    border-radius: 10px;
+    font-size: 13.5px;
+    color: var(--ok);
+    font-weight: 600;
+    margin-bottom: 26px;
+    max-width: 52ch;
+  }
+  .trust svg { flex-shrink: 0; margin-top: 3px; }
+
+  /* Panels — one shared surface treatment, no card-on-card stacking */
+  .panel {
+    background: var(--paper-hi);
+    border: 1px solid var(--rule-strong);
+    border-radius: 10px;
+    padding: 4px 20px;
+  }
+  .panel-title {
+    padding: 18px 0 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .panel + .panel { margin-top: 18px; }
+  .panel-note {
+    padding: 0 0 18px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .panel-note + .panel-note { padding-top: 0; }
+  .panel-note b { color: var(--ink); font-weight: 600; }
+
+  /* Hero: browser tab-strip demo (decorative, caption carries meaning) */
   .hero {
     padding: 20px 20px 0;
     background: var(--paper-hi);
     border: 1px solid var(--rule-strong);
-    border-radius: 8px;
-    margin-bottom: 32px;
+    border-radius: 10px;
+    margin-bottom: 18px;
     overflow: hidden;
   }
-  .tabstrip {
-    display: flex;
-    gap: 4px;
-    align-items: flex-end;
-  }
+  .tabstrip { display: flex; gap: 4px; align-items: flex-end; }
   .tab {
     position: relative;
     flex: 1 1 0;
@@ -105,12 +352,8 @@
   }
   .tab-line { display: block; height: 3px; border-radius: 2px; background: #C8C5BD; }
   .tab-line.s { width: 58%; }
-
-  /* The two "same listing" tabs */
   .tab--match { background: #E4E3DF; }
   .tab--match .tab-line { background: #AAA8A2; }
-
-  /* The flagged duplicate tab — amber border, amber dot */
   .tab--flagged {
     background: var(--paper-hi);
     border-color: var(--amber);
@@ -118,7 +361,6 @@
     z-index: 1;
   }
   .tab--flagged .tab-line { background: var(--ink-soft); }
-
   .dot {
     position: absolute;
     top: -5px; right: -5px;
@@ -133,123 +375,25 @@
     0%   { opacity: 0; transform: scale(0.4); }
     100% { opacity: 1; transform: scale(1); }
   }
-
-  /* Floor line separating tabs from caption */
   .hero-floor { height: 1px; background: var(--rule-strong); margin: 0 -20px; }
-
   .hero-caption {
     padding: 14px 0 18px;
     font-size: 12.5px;
     color: var(--ink-soft);
-    line-height: 1.4;
+    line-height: 1.45;
   }
   .hero-caption strong { color: var(--amber); font-weight: 600; }
 
-  /* ── Slim two-segment progress rail; onboarding.js still owns state. ── */
-  .step-track { margin-bottom: 40px; }
-
-  ol#progress-rail {
-    display: flex;
-    list-style: none;
-    width: 100%;
-  }
-
-  ol#progress-rail li {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 10.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ink-faint);
-    transition: color 0.25s ease;
-  }
-
-  ol#progress-rail li::before {
-    content: '';
-    width: 100%; height: 4px;
-    border-radius: 999px;
-    background: var(--rule);
-    transition: background 0.3s ease;
-  }
-
-  /* Active — current step is unambiguous: ink label + solid ink bar */
-  ol#progress-rail li[data-state="active"] { color: var(--ink); }
-  ol#progress-rail li[data-state="active"]::before { background: var(--ink); }
-
-  /* Done — green bar + label, checkmark appended after the text */
-  ol#progress-rail li[data-state="done"] { color: var(--ok); }
-  ol#progress-rail li[data-state="done"]::before { background: var(--ok); }
-  ol#progress-rail li[data-state="done"]::after {
-    content: '✓';
-    display: inline-block;
-    margin-left: 5px;
-    font-weight: 700;
-    animation: check-pop 180ms ease-out;
-  }
-  @keyframes check-pop {
-    0%   { opacity: 0; transform: scale(0.5); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
-  /* ── Content headings ────────────────────────────────────────── */
-  section h1 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.025em;
-    line-height: 1.15;
-    margin-bottom: 12px;
-  }
-
-  .lede {
-    color: var(--ink-soft);
-    max-width: 44ch;
-    margin-bottom: 28px;
-    line-height: 1.6;
-  }
-
-  /* Trust / privacy callout on consent screen — solid tonal surface */
-  .trust {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 9px 14px;
-    background: var(--ok-bg);
-    border: 1px solid var(--ok-rule);
-    border-radius: 8px;
-    font-size: 13px;
-    color: var(--ok);
-    font-weight: 600;
-    margin-bottom: 32px;
-  }
-  .trust svg { flex-shrink: 0; }
-
-  /* ── First-launch product guide ──────────────────────────────── */
-  .how-it-works {
-    margin: 0 0 28px;
-    padding: 4px 18px;
-    background: var(--paper-hi);
-    border: 1px solid var(--rule-strong);
-    border-radius: 8px;
-  }
-  .how-it-works h2 {
-    padding: 18px 0 12px;
-    font-size: 14px;
-    font-weight: 700;
-  }
+  /* "How it works" rows */
   .guide-row {
     display: flex;
-    gap: 12px;
+    gap: 13px;
     padding: 14px 0;
     border-top: 1px solid var(--rule);
     align-items: flex-start;
   }
   .guide-icon {
-    width: 24px;
-    height: 24px;
+    width: 24px; height: 24px;
     border-radius: 50%;
     display: grid;
     place-items: center;
@@ -266,87 +410,74 @@
     font-size: 13.5px;
     margin-bottom: 2px;
   }
-  .guide-row p {
-    color: var(--ink-soft);
-    font-size: 13px;
-    line-height: 1.5;
-  }
+  .guide-row p { color: var(--ink-soft); font-size: 13px; line-height: 1.5; }
 
-  /* ── Buttons ──────────────────────────────────────────────────── */
+  /* ══ Buttons ══════════════════════════════════════════════════ */
   .actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
     margin-top: 6px;
   }
-
   button {
     font-family: var(--sans);
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 600;
-    padding: 11px 22px;
-    border-radius: 8px;
+    padding: 12px 22px;
+    border-radius: 9px;
     cursor: pointer;
     border: 1.5px solid transparent;
-    line-height: 1;
+    line-height: 1.1;
     white-space: nowrap;
     transition: background .1s ease, color .1s ease,
-                border-color .1s ease, box-shadow .12s ease;
-  }
-  button:focus-visible {
-    outline: 2px solid var(--ink);
-    outline-offset: 2px;
+                border-color .1s ease, transform .06s ease;
   }
   button:active { transform: translateY(1px); }
-  button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
+  button:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-  /* Filled primary — dominant, solid, no ambiguity about the main action */
   .btn-primary {
     background: var(--ink);
     color: var(--paper);
     border-color: var(--ink);
   }
   .btn-primary:hover { background: #2E3035; }
-  .btn-primary:active { background: var(--ink); }
-
-  /* Outlined secondary — visibly lighter weight than primary */
   .btn-secondary {
     background: var(--paper-hi);
     color: var(--ink-soft);
     border-color: var(--rule-strong);
   }
-  .btn-secondary:hover {
-    background: var(--rule);
-    color: var(--ink);
-    border-color: var(--rule-strong);
-  }
+  .btn-secondary:hover { background: var(--rule); color: var(--ink); }
   .btn-secondary:active { background: var(--rule-strong); }
 
-  /* ── Guide steps (HTML generated by onboarding.js) ────────────── */
-  #guide-steps {
-    margin: 28px 0;
-    background: var(--paper-hi);
-    border: 1px solid var(--rule-strong);
-    border-radius: 8px;
-    padding: 4px 18px;
+  /* Required-vs-optional labelling sits next to the actions it describes */
+  .action-note {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-top: 12px;
   }
+  .tag {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    vertical-align: 1px;
+  }
+  .tag--required { background: var(--ink); color: var(--paper); }
+  .tag--optional { background: var(--rule); color: var(--ink-soft); }
 
-  /* Pin-step instructions box — same solid treatment as #guide-steps,
-     kept as its own selector so #guide-steps (and onboarding.js's use of
-     it) is untouched. */
+  /* ══ Guide steps (markup generated by onboarding.js) ══════════ */
+  #guide-steps,
   #pin-steps {
-    margin: 20px 0;
+    margin: 24px 0;
     background: var(--paper-hi);
     border: 1px solid var(--rule-strong);
-    border-radius: 8px;
-    padding: 4px 18px;
+    border-radius: 10px;
+    padding: 4px 20px;
   }
-
-  /* JS generates: <div class="step"><div class="step-num">1</div><p>…</p></div> */
   .step {
     display: flex;
     gap: 16px;
@@ -369,35 +500,20 @@
     flex-shrink: 0;
     margin-top: 1px;
   }
-  .step-body {
-    flex: 1;
-    min-width: 0;
-  }
+  .step-body { flex: 1; min-width: 0; }
   .step > p,
   .step-body p {
     flex: 1;
-    margin: 0;
     font-size: 14px;
     color: var(--ink-soft);
     line-height: 1.6;
-    max-width: 44ch;
+    max-width: 52ch;
   }
   .step > p b,
   .step-body p b { color: var(--ink); font-weight: 600; }
-
-  /* Locator diagrams attached to guide-steps — flat schematic, not a
-     screenshot, so it doesn't try to be pixel-accurate to Chrome's UI. */
-  .step-diagram { margin-top: 12px; max-width: 320px; }
-  .step-diagram-svg {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-  .step-diagram-caption {
-    margin: 4px 0 0;
-    font-size: 11px;
-    color: var(--ink-faint);
-  }
+  .step-diagram { margin-top: 12px; max-width: 360px; }
+  .step-diagram-svg { display: block; width: 100%; height: auto; }
+  .step-diagram-caption { margin-top: 4px; font-size: 11px; color: var(--ink-faint); }
 
   code {
     font-family: var(--mono);
@@ -408,53 +524,140 @@
     border-radius: 4px;
   }
 
-  /* ── Status readout ("Check again" result) ────────────────────── */
-  /* JS sets className to 'status show ok' or 'status show pending'. */
-  /* The 'status' class itself does nothing — ID selectors drive it. */
+  /* ══ Status readout — class contract from onboarding.js ═══════ */
   #guide-status {
     display: none;
     margin: 20px 0 4px;
     padding: 13px 16px;
-    border-radius: 8px;
+    border-radius: 9px;
     font-size: 13.5px;
     border: 1px solid var(--rule-strong);
     background: var(--paper-hi);
     color: var(--ink-soft);
     font-family: var(--mono);
     line-height: 1.5;
+    max-width: 60ch;
     transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
   }
   #guide-status.show    { display: block; }
   #guide-status.ok      { background: var(--ok-bg);    border-color: var(--ok-rule);    color: var(--ok); }
   #guide-status.pending { background: var(--amber-bg); border-color: var(--amber-rule); color: var(--amber); }
 
-  /* ── Pin step ─────────────────────────────────────────────────── */
+  /* ══ Pin step ═════════════════════════════════════════════════ */
+  #pin-step {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--rule);
+    animation: rise 220ms ease-out;
+  }
   #pin-step h2 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
-    letter-spacing: -0.015em;
+    letter-spacing: -0.018em;
     margin-bottom: 8px;
   }
   #pin-step .lede { margin-bottom: 0; }
+  @keyframes rise {
+    0%   { opacity: 0; transform: translateY(6px); }
+    100% { opacity: 1; transform: none; }
+  }
 
-  /* ── Utilities ────────────────────────────────────────────────── */
   .gap { height: 20px; }
   .hidden { display: none !important; }
 
-  /* Inline failure state for actions that write to chrome.storage —
-     reuses the existing amber "warning" tokens, no new color added. */
   .field-error {
-    margin-top: 10px;
+    margin-top: 12px;
     font-size: 13px;
+    font-weight: 600;
     color: var(--amber);
   }
 
+  /* ══ 4. Footer ════════════════════════════════════════════════ */
+  .site-footer {
+    background: var(--paper-hi);
+    border-top: 1px solid var(--rule);
+    padding-block: 28px 32px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .footer-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px 40px;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .footer-product strong { color: var(--ink); font-weight: 700; }
+  .footer-facts {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    margin-top: 6px;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+  .footer-facts li + li::before {
+    content: '·';
+    margin-right: 14px;
+    color: var(--rule-strong);
+  }
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+  }
+  .footer-links a {
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--ink-soft);
+    border-bottom: 1px solid transparent;
+    padding-bottom: 1px;
+  }
+  .footer-links a:hover { color: var(--ink); border-bottom-color: var(--rule-strong); }
+  .footer-credit {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+  }
+  .footer-credit a { color: var(--ink-soft); font-weight: 600; }
+
+  /* ══ Responsive ═══════════════════════════════════════════════ */
+  @media (max-width: 900px) {
+    .screen { grid-template-columns: minmax(0, 1fr); }
+    /* Supporting column reads as context, so it follows the decision
+       rather than pushing the primary actions below the fold. */
+    .screen-aside { order: 2; }
+    .screen-main  { order: 1; }
+  }
+  @media (max-width: 640px) {
+    body { font-size: 14.5px; }
+    ol#progress-rail { max-width: none; }
+    ol#progress-rail li {
+      font-size: 9.5px;
+      letter-spacing: 0.03em;
+      gap: 7px;
+    }
+    .rail-label { max-width: 9ch; }
+    ol#progress-rail li + li::before {
+      right: calc(50% + 17px);
+      left: calc(-50% + 17px);
+    }
+    .rail-dot { width: 24px; height: 24px; font-size: 11px; }
+    .actions { gap: 8px; }
+    .actions button { flex: 1 1 100%; }
+    .footer-grid { flex-direction: column; gap: 16px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .dot { animation: none; opacity: 1; }
-    ol#progress-rail li::before,
-    ol#progress-rail li::after { transition: none; }
-    ol#progress-rail li[data-state="done"]::after { animation: none; }
-    #guide-status { transition: none; }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .dot { opacity: 1; }
   }
 </style>
 </head>
@@ -462,180 +665,311 @@
 
 <div class="top-stripe"></div>
 
-<div class="page">
-
-  <!-- Brand mark -->
-  <div class="brand">
-    <div class="brand-mark" aria-hidden="true">
-      <!-- Shield / sentinel icon -->
-      <svg width="15" height="17" viewBox="0 0 15 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M7.5 1L1 3.8V8.5C1 12.1 3.9 15.3 7.5 16.5C11.1 15.3 14 12.1 14 8.5V3.8L7.5 1Z"
-              fill="white" fill-opacity="0.92"/>
-      </svg>
-    </div>
-    <span class="brand-name">SeenDisJob</span>
-  </div>
-
-  <!-- Hero: tab strip demo (aria-hidden — decorative) -->
-  <div class="hero">
-    <div class="tabstrip">
-      <div class="tab"><span class="tab-line"></span><span class="tab-line s"></span></div>
-      <div class="tab"><span class="tab-line"></span><span class="tab-line s"></span></div>
-      <div class="tab tab--match"><span class="tab-line"></span><span class="tab-line s"></span></div>
-      <div class="tab"><span class="tab-line"></span><span class="tab-line s"></span></div>
-      <div class="tab tab--match tab--flagged">
-        <span class="tab-line"></span><span class="tab-line s"></span>
-        <span class="dot"></span>
+<!-- ══ Branded header ═════════════════════════════════════════ -->
+<header class="site-header">
+  <div class="shell">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="20" height="22" viewBox="0 0 15 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.5 1L1 3.8V8.5C1 12.1 3.9 15.3 7.5 16.5C11.1 15.3 14 12.1 14 8.5V3.8L7.5 1Z"
+                fill="white" fill-opacity="0.92"/>
+        </svg>
       </div>
+      <span class="brand-name">SeenDisJob Setup</span>
     </div>
-    <div class="hero-floor"></div>
-    <p class="hero-caption">
-      Same listing, reopened <strong>three tabs later</strong> — that's what gets flagged.
-    </p>
+    <p class="brand-tagline">Duplicate job-posting detection that runs entirely in your browser.</p>
+    <ul class="assurances">
+      <li>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#55585E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        No account required
+      </li>
+      <li>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#55585E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Your data stays on this device
+      </li>
+      <li>
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="#55585E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Set up locally in under a minute
+      </li>
+    </ul>
   </div>
+</header>
 
-  <!-- Horizontal step progress — same IDs, onboarding.js unchanged -->
-  <div class="step-track" role="navigation" aria-label="Setup progress">
+<!-- ══ Progress rail — IDs and data-state contract unchanged ═══ -->
+<nav class="step-track" aria-label="Setup progress">
+  <div class="shell">
     <ol id="progress-rail">
-      <li id="progress-consent"     data-state="active">Consent</li>
-      <li id="progress-permissions" data-state="pending">Permissions</li>
+      <li id="progress-setup" data-state="done">
+        <span class="rail-dot"><span class="rail-num">1</span></span>
+        <span class="rail-label">Setup</span>
+      </li>
+      <li id="progress-consent" data-state="active">
+        <span class="rail-dot"><span class="rail-num">2</span></span>
+        <span class="rail-label">Privacy</span>
+      </li>
+      <li id="progress-permissions" data-state="pending">
+        <span class="rail-dot"><span class="rail-num">3</span></span>
+        <span class="rail-label">Browser permission</span>
+      </li>
+      <li id="progress-pin" data-state="pending">
+        <span class="rail-dot"><span class="rail-num">4</span></span>
+        <span class="rail-label">Pin extension</span>
+      </li>
+      <li id="progress-ready" data-state="pending">
+        <span class="rail-dot"><span class="rail-num">5</span></span>
+        <span class="rail-label">Ready</span>
+      </li>
     </ol>
   </div>
+</nav>
 
-  <!-- ── Screen 1: consent ──────────────────────────────────────── -->
-  <section id="screen-consent">
-    <h1>SeenDisJob watches while you search</h1>
-    <p class="lede">
-      It quietly remembers job postings you visit and warns you when the
-      same opportunity appears again across different sites or tabs.
-    </p>
+<!-- ══ Content ════════════════════════════════════════════════ -->
+<main class="page">
+  <div class="shell">
 
-    <div class="how-it-works">
-      <h2>How it works</h2>
-      <div class="guide-row">
-        <div class="guide-icon">1</div>
-        <div>
-          <strong>Browse jobs normally</strong>
-          <p>SeenDisJob reads the visible job title and company name from supported job pages.</p>
-        </div>
-      </div>
-      <div class="guide-row">
-        <div class="guide-icon">2</div>
-        <div>
-          <strong>Duplicates are flagged</strong>
-          <p>If a repost or agency copy matches a job you already saw, a small warning appears in the corner.</p>
-        </div>
-      </div>
-      <div class="guide-row">
-        <div class="guide-icon">3</div>
-        <div>
-          <strong>Applications are counted automatically</strong>
-          <p>LinkedIn Easy Apply is counted separately; applications that open an external form count as Advanced Apply.</p>
-        </div>
-      </div>
-      <div class="guide-row">
-        <div class="guide-icon">4</div>
-        <div>
-          <strong>Review everything from the dashboard</strong>
-          <p>See tracked postings, duplicate history, application totals, and trusted sites from the toolbar popup.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="trust" role="note">
-      <!-- Lock icon — decorative, the text carries the meaning -->
-      <svg width="14" height="15" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="1.5" y="6.5" width="11" height="8" rx="1.5"
-              stroke="#1E8E3E" stroke-width="1.5"/>
-        <path d="M4 6.5V5A3 3 0 0110 5v1.5"
-              stroke="#1E8E3E" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="7" cy="10" r="1.2" fill="#1E8E3E"/>
-      </svg>
-      Nothing leaves this device — no server, no account, no analytics
-    </div>
-
-    <div class="actions">
-      <button id="btn-consent-yes" class="btn-primary">Allow content checks</button>
-      <button id="btn-consent-no"  class="btn-secondary">No thanks</button>
-    </div>
-    <!-- Shown by the consent handlers in onboarding.js if the storage
-         write fails; the screen does not advance until it succeeds. -->
-    <p id="consent-error" class="field-error hidden" role="alert"></p>
-  </section>
-
-  <!-- ── Screen 2: declined ─────────────────────────────────────── -->
-  <section id="screen-declined" class="hidden">
-    <h1>All good.</h1>
-    <p class="lede">
-      The extension stays fully inactive — it won't read any page content
-      or watch for job postings.
-    </p>
-    <div class="actions">
-      <button id="btn-close-1" class="btn-primary">Close this tab</button>
-      <button id="btn-reconsider" class="btn-secondary">Change your mind</button>
-    </div>
-  </section>
-
-  <!-- ── Screen 3: permissions guide ───────────────────────────── -->
-  <section id="screen-guide" class="hidden">
-    <h1>One more step</h1>
-    <p class="lede">
-      Chrome requires this toggle to be flipped by hand — no extension
-      can enable it for you.
-    </p>
-
-    <!-- Filled by renderGuideSteps() in onboarding.js -->
-    <div id="guide-steps"></div>
-
-    <div class="actions">
-      <button id="btn-open-extensions" class="btn-primary">Open chrome://extensions</button>
-      <button id="btn-check-again"     class="btn-secondary">Check again</button>
-    </div>
-
-    <!-- Shown by handleCheckAgain() / openExtensionsPage() -->
-    <div id="guide-status"></div>
-
-    <!-- Revealed by handleCheckAgain() once chrome.userScripts is confirmed
-         working. Pinning is optional for detection — it only helps reach
-         the popup/dashboard — so it's asked for here rather than gating
-         anything. Chrome can't be told to pin an extension for you, same
-         as it can't flip the toggle above, so this is guidance + a manual
-         confirmation, not automation. -->
-    <div id="pin-step" class="hidden">
-      <div class="gap"></div>
-      <h2>Pin SeenDisJob to your toolbar</h2>
+  <!-- ── Screen 1: consent ─────────────────────────────────────── -->
+  <section id="screen-consent" class="screen" aria-labelledby="consent-heading">
+    <div class="screen-main">
+      <p class="eyebrow">Step 2 of 5 · Privacy</p>
+      <h1 id="consent-heading">Let SeenDisJob read job pages as you browse</h1>
       <p class="lede">
-        Optional for detection to work, but it keeps the popup and
-        dashboard one click away.
+        It quietly remembers job postings you visit and warns you when the
+        same opportunity appears again across different sites or tabs.
+        Nothing happens until you allow it here.
       </p>
-      <div id="pin-steps">
-        <div class="step">
-          <div class="step-num">1</div>
-          <p>Click the <b>puzzle-piece icon</b> in Chrome's toolbar.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">2</div>
-          <p>Find <b>SeenDisJob</b> in the list.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">3</div>
-          <p>Click the <b>pin icon</b> next to it.</p>
-        </div>
+
+      <div class="trust" role="note">
+        <svg width="16" height="17" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="1.5" y="6.5" width="11" height="8" rx="1.5" stroke="#1E8E3E" stroke-width="1.5"/>
+          <path d="M4 6.5V5A3 3 0 0110 5v1.5" stroke="#1E8E3E" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="7" cy="10" r="1.2" fill="#1E8E3E"/>
+        </svg>
+        <span>
+          Nothing leaves this device — no server, no account, no analytics.
+          Job titles and company names are stored in Chrome's local storage
+          and never sent anywhere.
+        </span>
       </div>
+
       <div class="actions">
-        <button id="btn-pin-confirm" class="btn-primary">I've pinned SeenDisJob</button>
+        <button id="btn-consent-yes" class="btn-primary">Allow content checks</button>
+        <button id="btn-consent-no"  class="btn-secondary">No thanks</button>
       </div>
+      <p class="action-note">
+        <span class="tag tag--required">Required</span>
+        Detection cannot run without this. You can reverse it any time from
+        the dashboard's Settings tab.
+      </p>
+      <!-- Shown by the consent handlers in onboarding.js if the storage
+           write fails; the screen does not advance until it succeeds. -->
+      <p id="consent-error" class="field-error hidden" role="alert"></p>
     </div>
 
-    <div class="gap"></div>
+    <aside class="screen-aside">
+      <!-- Decorative demo — the caption below carries the meaning -->
+      <div class="hero" aria-hidden="true">
+        <div class="tabstrip">
+          <div class="tab"><span class="tab-line"></span><span class="tab-line s"></span></div>
+          <div class="tab"><span class="tab-line"></span><span class="tab-line s"></span></div>
+          <div class="tab tab--match"><span class="tab-line"></span><span class="tab-line s"></span></div>
+          <div class="tab"><span class="tab-line"></span><span class="tab-line s"></span></div>
+          <div class="tab tab--match tab--flagged">
+            <span class="tab-line"></span><span class="tab-line s"></span>
+            <span class="dot"></span>
+          </div>
+        </div>
+        <div class="hero-floor"></div>
+        <p class="hero-caption">
+          Same listing, reopened <strong>three tabs later</strong> — that's what gets flagged.
+        </p>
+      </div>
 
-    <!-- Revealed by btn-pin-confirm's click handler -->
-    <div class="actions">
-      <button id="btn-close-2" class="btn-secondary hidden">Close this tab</button>
+      <div class="panel">
+        <h2 class="panel-title">How it works</h2>
+        <div class="guide-row">
+          <div class="guide-icon">1</div>
+          <div>
+            <strong>Browse jobs normally</strong>
+            <p>SeenDisJob reads the visible job title and company name from supported job pages.</p>
+          </div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-icon">2</div>
+          <div>
+            <strong>Duplicates are flagged</strong>
+            <p>If a repost or agency copy matches a job you already saw, a small warning appears in the corner.</p>
+          </div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-icon">3</div>
+          <div>
+            <strong>Applications are counted automatically</strong>
+            <p>LinkedIn Easy Apply is counted separately; applications that open an external form count as Advanced Apply.</p>
+          </div>
+        </div>
+        <div class="guide-row">
+          <div class="guide-icon">4</div>
+          <div>
+            <strong>Review everything from the dashboard</strong>
+            <p>See tracked postings, duplicate history, application totals, and trusted sites from the toolbar popup.</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ── Screen 2: declined ────────────────────────────────────── -->
+  <section id="screen-declined" class="screen screen--single hidden" aria-labelledby="declined-heading">
+    <div class="screen-main">
+      <p class="eyebrow">Setup paused</p>
+      <h1 id="declined-heading">All good.</h1>
+      <p class="lede">
+        The extension stays fully inactive — it won't read any page content
+        or watch for job postings. Nothing has been stored beyond your answer
+        to this question.
+      </p>
+      <div class="actions">
+        <button id="btn-close-1" class="btn-primary">Close this tab</button>
+        <button id="btn-reconsider" class="btn-secondary">Change your mind</button>
+      </div>
+      <p class="action-note">
+        You can reopen this setup guide later from the dashboard's
+        Privacy &amp; permissions section.
+      </p>
     </div>
   </section>
 
-</div><!-- /page -->
+  <!-- ── Screen 3: permissions guide ──────────────────────────── -->
+  <section id="screen-guide" class="screen hidden" aria-labelledby="guide-heading">
+    <div class="screen-main">
+      <p class="eyebrow">Step 3 of 5 · Browser permission</p>
+      <h1 id="guide-heading">Turn on Chrome's User Scripts permission</h1>
+      <p class="lede">
+        SeenDisJob detects duplicates by injecting its detector through
+        Chrome's <code>userScripts</code> API. Chrome requires this toggle
+        to be flipped by hand — no extension can enable it for you.
+      </p>
+
+      <!-- Filled by renderGuideSteps() in onboarding.js -->
+      <div id="guide-steps"></div>
+
+      <div class="actions">
+        <button id="btn-open-extensions" class="btn-primary">Open chrome://extensions</button>
+        <button id="btn-check-again"     class="btn-secondary">Check again</button>
+      </div>
+      <p class="action-note">
+        <span class="tag tag--required">Required</span>
+        This page rechecks automatically when you come back to this tab.
+      </p>
+
+      <!-- Shown by handleCheckAgain() / openExtensionsPage() -->
+      <div id="guide-status" role="status" aria-live="polite"></div>
+
+      <!-- Revealed by handleCheckAgain() once chrome.userScripts is confirmed
+           working. Pinning is optional for detection — it only helps reach
+           the popup/dashboard — so it's asked for here rather than gating
+           anything. -->
+      <div id="pin-step" class="hidden">
+        <p class="eyebrow">Step 4 of 5 · Pin extension</p>
+        <h2>Pin SeenDisJob to your toolbar</h2>
+        <p class="lede">
+          <span class="tag tag--optional">Optional</span>
+          Detection already works without this — pinning just keeps the popup
+          and dashboard one click away.
+        </p>
+        <div id="pin-steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <p>Click the <b>puzzle-piece icon</b> in Chrome's toolbar.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <p>Find <b>SeenDisJob</b> in the list.</p>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <p>Click the <b>pin icon</b> next to it.</p>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="btn-pin-confirm" class="btn-primary">I've pinned SeenDisJob</button>
+        </div>
+      </div>
+
+      <div class="gap"></div>
+
+      <!-- Revealed by completePinStep() -->
+      <div class="actions">
+        <button id="btn-close-2" class="btn-secondary hidden">Finish setup and close this tab</button>
+      </div>
+    </div>
+
+    <aside class="screen-aside">
+      <div class="panel">
+        <h2 class="panel-title">Why Chrome asks for this</h2>
+        <p class="panel-note">
+          SeenDisJob runs its detector in Chrome's <b>USER_SCRIPT</b> world,
+          which is the execution context Chrome built for on-demand
+          userscript-style injection. Chrome gates that API behind a manual
+          toggle so no extension can start injecting scripts without a
+          deliberate, human action.
+        </p>
+        <p class="panel-note">
+          On Chrome 138 and later this is a per-extension
+          <b>Allow User Scripts</b> switch, in addition to Developer mode.
+          On earlier versions, Developer mode alone is enough.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">What this does not change</h2>
+        <p class="panel-note">
+          The permission lets SeenDisJob read job pages you visit. It does
+          not create an account, open a network connection, or sync anything.
+          The detector that runs in that world cannot reach storage directly —
+          everything it finds is handed to the extension and kept on this
+          device.
+        </p>
+      </div>
+    </aside>
+  </section>
+
+  </div><!-- /shell -->
+</main>
+
+<!-- ══ Footer ═════════════════════════════════════════════════ -->
+<footer class="site-footer">
+  <div class="shell">
+    <div class="footer-grid">
+      <div class="footer-product">
+        <strong>SeenDisJob</strong> — free and open source.
+        <ul class="footer-facts">
+          <li>MIT licensed</li>
+          <li>No account required</li>
+          <li>Data stays on this device</li>
+        </ul>
+      </div>
+      <ul class="footer-links">
+        <li><a href="https://github.com/UprightCode-hub/SeenDisJob" target="_blank" rel="noopener">GitHub repository</a></li>
+        <li><a href="https://github.com/UprightCode-hub/SeenDisJob/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a></li>
+        <li><a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </div>
+    <!-- Additional social links intentionally omitted: no verified URLs
+         exist for them. Add a <li> here only with a real, checked URL. -->
+    <p class="footer-credit">
+      Created by
+      <a href="https://www.linkedin.com/in/Wisdom-Ekwugha" target="_blank" rel="noopener">Wisdom Ekwugha</a>.
+      Installed from source as an unpacked extension — not distributed through the Chrome Web Store.
+    </p>
+  </div>
+</footer>
 
 <script src="onboarding.js"></script>
 </body>
