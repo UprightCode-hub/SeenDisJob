@@ -489,17 +489,33 @@
   .support-text { padding: 14px 18px; font-size: 13.5px; color: var(--ink-soft); line-height: 1.65; }
   .support-placeholder {
     display: block;
+    position: relative;
+    overflow: hidden;
     margin: 4px 18px 14px;
-    padding: 12px 14px;
-    border: 1px dashed var(--rule-strong);
+    padding: 13px 15px;
+    border: 1px solid var(--ink);
     border-radius: 9px;
-    background: var(--paper);
-    font: 12px var(--mono);
-    color: var(--ink-faint);
-    word-break: break-all;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 13px;
+    font-weight: 700;
     text-decoration: none;
-    cursor: default;
+    box-shadow: 0 3px 0 rgba(23, 24, 27, .18);
+    transition: background .1s ease, border-color .1s ease, transform .1s ease, box-shadow .1s ease;
   }
+  .support-placeholder::after { content: '↗'; float: right; font-size: 15px; opacity: .85; }
+  .support-placeholder::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -20%;
+    width: 12%;
+    background: rgba(255, 255, 255, .16);
+    transform: skewX(-22deg);
+    transition: left .4s ease;
+  }
+  .support-placeholder:hover { background: #2E3035; border-color: #2E3035; box-shadow: 0 4px 0 rgba(23, 24, 27, .2); }
+  .support-placeholder:hover::before { left: 118%; }
+  .support-placeholder:active { transform: translateY(1px); box-shadow: none; }
   .support-note { padding: 0 18px 16px; font-size: 12.5px; color: var(--ink-faint); }
 
   /* ══ Footer ═══════════════════════════════════════════════════ */
@@ -798,11 +814,8 @@
         <div class="support-text">
           <p>If SeenDisJob has been useful in your job search, you're welcome to support its development. This is entirely optional and never required to use the extension.</p>
         </div>
-        <!-- To enable donations: replace the href below (and the visible text, if desired)
-             with a real GitHub Sponsors, Ko-fi, or Buy Me a Coffee URL. Nothing else
-             on this page needs to change. -->
-        <a class="support-placeholder" id="support-donation-link" href="DONATION_LINK_PLACEHOLDER" rel="noopener">DONATION_LINK_PLACEHOLDER</a>
-        <div class="support-note">A real GitHub Sponsors, Ko-fi, or Buy Me a Coffee link will replace the placeholder above once one exists.</div>
+          <a class="support-placeholder" id="support-donation-link" href="https://flutterwave.com/donate/91lbt43tel7n" target="_blank" rel="noopener">Support SeenDisJob on Flutterwave</a>
+          <div class="support-note">Support is optional and helps keep SeenDisJob free, local-first, and open source.</div>
       </div>
     </section>
 

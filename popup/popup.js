@@ -13,8 +13,6 @@
  */
 
 const MSG_GET_STATUS   = 'GET_STATUS';
-const MSG_CLEAR_RECORDS = 'CLEAR_RECORDS';
-const MSG_GET_BACKUP   = 'GET_BACKUP';
 
 const headerSub     = document.getElementById('header-sub');
 const consentBanner = document.getElementById('consent-banner');
@@ -26,8 +24,6 @@ const mutedNoteEl   = document.getElementById('muted-note');
 const emptyState    = document.getElementById('empty-state');
 const historyPanel  = document.getElementById('history-panel');
 const historyList   = document.getElementById('history-list');
-const actionFeedback = document.getElementById('action-feedback');
-
 /* ── Helpers ──────────────────────────────────────────────────────── */
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -191,29 +187,6 @@ async function refresh() {
     renderHistory(response.history);
   });
 }
-
-/* ── Action buttons ───────────────────────────────────────────────── */
-document.getElementById('btn-clear').addEventListener('click', () => {
-  if (!confirm('Clear every tracked job posting? This cannot be undone.')) return;
-  chrome.runtime.sendMessage({ type: MSG_CLEAR_RECORDS }, () => {
-    actionFeedback.textContent = 'Cleared.';
-    refresh();
-  });
-});
-
-document.getElementById('btn-backup').addEventListener('click', () => {
-  chrome.runtime.sendMessage({ type: MSG_GET_BACKUP }, async (response) => {
-    try {
-      await navigator.clipboard.writeText(
-        JSON.stringify(response?.records ?? {}, null, 2)
-      );
-      actionFeedback.textContent = 'Backup JSON copied to clipboard.';
-    } catch (err) {
-      actionFeedback.textContent = 'Could not access the clipboard.';
-      console.warn('[SeenDisJob] clipboard write failed:', err);
-    }
-  });
-});
 
 document.getElementById('btn-dashboard').addEventListener('click', () => {
   chrome.tabs.create({ url: chrome.runtime.getURL('dashboard/dashboard.html') });

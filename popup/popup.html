@@ -5,7 +5,7 @@
   Visual-only pass. popup.js is NOT modified: every ID it reads
   (header-sub, update-banner, consent-banner, status-card, status-title,
   status-detail, record-count, muted-note, empty-state, history-panel,
-  history-list, action-feedback, btn-dashboard, btn-backup, btn-clear)
+  history-list, btn-dashboard)
   and every dynamic class it sets or generates (.status-card ok/alert,
   .hist-item/.hist-dot ok|alert|muted/.hist-body/.hist-label/
   .hist-detail/.hist-time) is preserved.
@@ -271,13 +271,6 @@
   #btn-dashboard::after { content: '→'; font-size: 14px; opacity: .75; }
   #btn-dashboard:hover { background: #2E3035; border-color: #2E3035; }
 
-  #btn-backup {
-    background: var(--paper-hi);
-    color: var(--ink-soft);
-    border-color: var(--rule-strong);
-  }
-  #btn-backup:hover { background: var(--rule); color: var(--ink); }
-
   button.danger {
     background: var(--paper-hi);
     color: var(--error);
@@ -285,12 +278,74 @@
   }
   button.danger:hover { background: var(--error-bg); border-color: var(--error); }
 
-  #action-feedback {
-    padding: 8px 16px 0;
-    font: 11.5px var(--mono);
-    color: var(--ink-faint);
-    min-height: 16px;
+  .support-card {
+    position: relative;
+    overflow: hidden;
+    margin: 14px 16px 0;
+    padding: 15px 14px 14px;
+    border: 1px solid var(--amber);
+    border-radius: 11px;
+    background: var(--amber-bg);
+    box-shadow: 0 4px 14px rgba(184, 134, 11, .12);
   }
+  .support-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -55%;
+    width: 34%;
+    height: 1px;
+    background: var(--surface);
+    opacity: .8;
+    transform: skewX(-25deg);
+    transition: left .45s ease;
+  }
+  .support-card:hover::before { left: 118%; }
+  .support-card .eyebrow {
+    color: var(--amber);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  .support-card p {
+    margin-top: 4px;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .support-link {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 9px 11px;
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    background: var(--ink);
+    color: var(--paper);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 2px 0 rgba(23, 24, 27, .18);
+    transition: background .1s ease, border-color .1s ease, transform .1s ease, box-shadow .1s ease;
+  }
+  .support-link::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 -36%;
+    width: 22%;
+    background: rgba(255, 255, 255, .16);
+    transform: skewX(-22deg);
+    transition: left .4s ease;
+  }
+  .support-link::after { content: '↗'; font-size: 14px; opacity: .85; }
+  .support-link:hover { background: #2E3035; border-color: #2E3035; box-shadow: 0 3px 0 rgba(23, 24, 27, .2); }
+  .support-link:hover::before { left: 118%; }
+  .support-link:active { transform: translateY(1px); box-shadow: none; }
 
   /* Local-first reminder — the same promise the onboarding page makes */
   .popup-footer {
@@ -358,10 +413,13 @@
 
   <div class="actions">
     <button id="btn-dashboard" type="button">Open dashboard</button>
-    <button id="btn-backup" type="button">Copy tracked-job backup to clipboard</button>
-    <button id="btn-clear" type="button" class="danger">Clear all tracked job data</button>
   </div>
-  <div id="action-feedback" aria-live="polite"></div>
+
+  <div class="support-card">
+    <div class="eyebrow">Support SeenDisJob</div>
+    <p>Enjoying a simpler, local-first job search? You can support its continued development.</p>
+    <a class="support-link" href="https://flutterwave.com/donate/91lbt43tel7n" target="_blank" rel="noopener">Support on Flutterwave</a>
+  </div>
 
   <div class="popup-footer">
     <div class="facts">No account · Data stays on this device</div>
