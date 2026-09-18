@@ -86,6 +86,28 @@ SeenDisJob is currently distributed as source code and is installed as an unpack
 git clone https://github.com/UprightCode-hub/SeenDisJob.git
 ```
 
+#### If the ZIP download is blocked
+
+Some browsers, antivirus tools, or company security policies block ZIP files downloaded from the web. In that case, use Git to copy the repository over HTTPS instead of downloading an archive:
+
+1. Install [Git for Windows](https://git-scm.com/download/win), if Git is not already installed.
+2. Open PowerShell.
+3. Move to the folder where you want to keep the extension:
+
+```powershell
+cd "$HOME\Downloads"
+```
+
+4. Clone the repository:
+
+```powershell
+git clone https://github.com/UprightCode-hub/SeenDisJob.git
+```
+
+5. In Chrome, open `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select the cloned `SeenDisJob` folder.
+
+If Git itself is blocked or you are using a work-managed computer, ask your IT administrator to approve Git for Windows and the SeenDisJob repository. Do not disable antivirus or browser security protections to force the download.
+
 #### Option 2: Download and extract the ZIP
 
 1. Open the [GitHub repository](https://github.com/UprightCode-hub/SeenDisJob).
