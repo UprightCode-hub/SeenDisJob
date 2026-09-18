@@ -69,7 +69,7 @@ function renderUpdateBanner(status) {
   const text = status.remoteVersion
     ? `SeenDisJob ${escapeHtml(status.remoteVersion)} is available.`
     : 'A newer version of SeenDisJob is available.';
-  banner.innerHTML = `${text} <a href="${escapeHtml(status.repoUrl)}" target="_blank" rel="noopener">View on GitHub</a>`;
+  banner.innerHTML = `${text} <a href="${escapeHtml(status.repoUrl)}" target="_blank" rel="noopener">Update on GitHub</a>`;
 }
 
 function renderOverview(data) {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SeenDisJob",
-  "version": "1.3",
+  "version": "1.4",
   "description": "Warns you when a job posting tab is a duplicate of one you've already seen — a toolbar badge and popup show what it's doing on every page.",
 
   "permissions": [

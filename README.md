@@ -10,6 +10,12 @@ Built by [Wisdom Ekwugha](https://www.linkedin.com/in/wisdom-ekwugha).
 
 [GitHub repository](https://github.com/UprightCode-hub/SeenDisJob) | [Issues](https://github.com/UprightCode-hub/SeenDisJob/issues) | [Project structure](docs/PROJECT_STRUCTURE.md)
 
+SeenDisJob is free to use. If it has helped make your job search less repetitive, you can optionally [support its development through Flutterwave](https://flutterwave.com/donate/91lbt43tel7n). Support is voluntary and does not unlock features or change how the extension works.
+
+## Current release
+
+The current source release is `1.4`. For unpacked installations, SeenDisJob checks GitHub for a newer manifest version and shows an update link in the popup and dashboard. It does not install updates automatically: download the latest repository source and reload the extension from `chrome://extensions`.
+
 > SeenDisJob is dual-licensed under the MIT License or Apache License 2.0. You may choose either license for use, modification, distribution, or commercial use. See [LICENSE](LICENSE) and [LICENSE-APACHE-2.0](LICENSE-APACHE-2.0).
 
 ## Duplicate job postings are a real problem
@@ -113,6 +119,8 @@ The onboarding flow in this project explains the setup and can be reopened if ne
 5. Open the popup to see the current tab status and recent activity.
 6. Open the dashboard to review tracked postings, history, site trust, and application totals.
 
+The popup is intentionally compact for quick status checks. Backup and data-clearing controls are available in the dashboard's Settings section rather than taking space in the toolbar popup.
+
 ## Architecture
 
 SeenDisJob is composed of a few clear runtime layers:
@@ -140,6 +148,7 @@ SeenDisJob/
 ├── docs/
 │   ├── PROJECT_STRUCTURE.md
 │   └── SEENDISJOB_CONTEXT.md
+├── graphify-out/                  Generated codebase knowledge-graph artifacts.
 ├── icons/
 ├── LICENSE
 ├── LICENSE-APACHE-2.0
@@ -232,6 +241,7 @@ You are not required to star the project, and there is no obligation to do so. I
 - [GitHub repository](https://github.com/UprightCode-hub/SeenDisJob)
 - [Issues](https://github.com/UprightCode-hub/SeenDisJob/issues)
 - [Wisdom Ekwugha on LinkedIn](https://www.linkedin.com/in/wisdom-ekwugha)
+- [Support SeenDisJob through Flutterwave](https://flutterwave.com/donate/91lbt43tel7n)
 - [Project structure](docs/PROJECT_STRUCTURE.md)
 - [Change log](CHANGELOG.md)
 

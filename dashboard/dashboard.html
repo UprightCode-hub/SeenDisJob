@@ -493,15 +493,14 @@
     overflow: hidden;
     margin: 4px 18px 14px;
     padding: 13px 15px;
-    border: 1px solid var(--ink);
+    border: 1px solid var(--rule-strong);
     border-radius: 9px;
-    background: var(--ink);
-    color: var(--paper);
+    background: var(--paper-hi);
+    color: var(--ink-soft);
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
-    box-shadow: 0 3px 0 rgba(23, 24, 27, .18);
-    transition: background .1s ease, border-color .1s ease, transform .1s ease, box-shadow .1s ease;
+    transition: background .1s ease, border-color .1s ease, color .1s ease, transform .1s ease;
   }
   .support-placeholder::after { content: '↗'; float: right; font-size: 15px; opacity: .85; }
   .support-placeholder::before {
@@ -513,9 +512,9 @@
     transform: skewX(-22deg);
     transition: left .4s ease;
   }
-  .support-placeholder:hover { background: #2E3035; border-color: #2E3035; box-shadow: 0 4px 0 rgba(23, 24, 27, .2); }
+  .support-placeholder:hover { background: var(--ink-soft); border-color: var(--ink-soft); color: var(--surface); }
   .support-placeholder:hover::before { left: 118%; }
-  .support-placeholder:active { transform: translateY(1px); box-shadow: none; }
+  .support-placeholder:active { transform: translateY(1px); }
   .support-note { padding: 0 18px 16px; font-size: 12.5px; color: var(--ink-faint); }
 
   /* ══ Footer ═══════════════════════════════════════════════════ */

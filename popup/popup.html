@@ -2,7 +2,8 @@
   FILE: popup/popup.html
   v1.5.0 — brought into the onboarding/dashboard v1.5 visual system.
 
-  Visual-only pass. popup.js is NOT modified: every ID it reads
+  Popup presentation and copy pass. popup.js keeps the same runtime contract:
+  every ID it reads
   (header-sub, update-banner, consent-banner, status-card, status-title,
   status-detail, record-count, muted-note, empty-state, history-panel,
   history-list, btn-dashboard)
@@ -35,6 +36,9 @@
     --error:       #A5231B;
     --error-bg:    #F6D9D6;
     --error-rule:  #E3AFA9;
+    --support:     var(--ink-soft);
+    --support-bg:  var(--paper-hi);
+    --support-rule: var(--rule-strong);
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
   }
@@ -271,22 +275,15 @@
   #btn-dashboard::after { content: '→'; font-size: 14px; opacity: .75; }
   #btn-dashboard:hover { background: #2E3035; border-color: #2E3035; }
 
-  button.danger {
-    background: var(--paper-hi);
-    color: var(--error);
-    border-color: var(--error-rule);
-  }
-  button.danger:hover { background: var(--error-bg); border-color: var(--error); }
-
   .support-card {
     position: relative;
     overflow: hidden;
     margin: 14px 16px 0;
     padding: 15px 14px 14px;
-    border: 1px solid var(--amber);
-    border-radius: 11px;
-    background: var(--amber-bg);
-    box-shadow: 0 4px 14px rgba(184, 134, 11, .12);
+    border: 1px solid var(--support-rule);
+    border-left: 3px solid var(--support);
+    border-radius: 9px;
+    background: var(--support-bg);
   }
   .support-card::before {
     content: '';
@@ -302,7 +299,7 @@
   }
   .support-card:hover::before { left: 118%; }
   .support-card .eyebrow {
-    color: var(--amber);
+    color: var(--support);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.09em;
@@ -323,15 +320,14 @@
     gap: 10px;
     margin-top: 10px;
     padding: 9px 11px;
-    border: 1px solid var(--ink);
+    border: 1px solid var(--support);
     border-radius: 8px;
-    background: var(--ink);
-    color: var(--paper);
+    background: transparent;
+    color: var(--support);
     font-size: 12px;
     font-weight: 700;
     text-decoration: none;
-    box-shadow: 0 2px 0 rgba(23, 24, 27, .18);
-    transition: background .1s ease, border-color .1s ease, transform .1s ease, box-shadow .1s ease;
+    transition: background .1s ease, border-color .1s ease, color .1s ease, transform .1s ease;
   }
   .support-link::before {
     content: '';
@@ -343,9 +339,9 @@
     transition: left .4s ease;
   }
   .support-link::after { content: '↗'; font-size: 14px; opacity: .85; }
-  .support-link:hover { background: #2E3035; border-color: #2E3035; box-shadow: 0 3px 0 rgba(23, 24, 27, .2); }
+  .support-link:hover { background: var(--support); border-color: var(--support); color: var(--surface); }
   .support-link:hover::before { left: 118%; }
-  .support-link:active { transform: translateY(1px); box-shadow: none; }
+  .support-link:active { transform: translateY(1px); }
 
   /* Local-first reminder — the same promise the onboarding page makes */
   .popup-footer {

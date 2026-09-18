@@ -2,11 +2,15 @@
 
 This file is internal project context for contributors and maintainers. It documents the engineering decisions and design history behind the current implementation. It is not intended to be the public-facing product description.
 
+## Current release: v1.4
+
+The repository currently ships source release `1.4`. The manifest version is the update signal for unpacked installations: `background.js` fetches the `main` branch `manifest.json` from GitHub every 12 hours at most, compares it with the installed version, and exposes an informational update link through the popup and dashboard. It never downloads or installs source automatically. Users must download the repository and reload the unpacked extension from `chrome://extensions`.
+
 ## Who's building this
 Python developer, <2yrs pro experience. Reads JS fine, can't confidently write it from scratch. Uses VS Code + a "Codex" agent in-editor as an alternative/complement. Wants: minimal-but-real comments (not line-by-line), production-ready code, incremental builds (one file at a time, don't generate everything at once), and to be told plainly whenever something isn't fully understood or something newly-found conflicts with an earlier decision.
 
 ## The problem / product
-During high-volume job search (30+ tabs normal), same job posting often reappears (repost, staffing-agency mirror, new req code). Tool silently warns when the current tab is a duplicate of one already seen. Single purpose only — NOT a userscript-manager, NOT a job-tracker/CRM (manual application-stage tracking is still explicitly rejected, see original reasoning below). UPDATE: a dashboard showing the tool's own passive data (jobs seen, duplicates caught, site trust list) is implemented — see the v1.3 section. This is narrower than the job-tracker concept that was rejected: no manual status/notes/stages, just a fuller view of data the tool already collects. The job-tracker/CRM rejection itself still stands.
+During high-volume job search (30+ tabs normal), same job posting often reappears (repost, staffing-agency mirror, new req code). Tool silently warns when the current tab is a duplicate of one already seen. Single purpose only — NOT a userscript-manager, NOT a job-tracker/CRM (manual application-stage tracking is still explicitly rejected, see original reasoning below). UPDATE: a dashboard showing the tool's own passive data (jobs seen, duplicates caught, site trust list) is implemented — see the v1.3 implementation history. This is narrower than the job-tracker concept that was rejected: no manual status/notes/stages, just a fuller view of data the tool already collects. The job-tracker/CRM rejection itself still stands.
 
 ## Reference implementation
 Original Tampermonkey userscript "SeenDisJob" v2.5 (~500 lines,

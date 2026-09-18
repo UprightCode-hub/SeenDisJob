@@ -23,7 +23,9 @@ SeenDisJob/
 │   └── dashboard.js              Dashboard logic and data rendering.
 ├── docs/
 │   ├── PROJECT_STRUCTURE.md      This file.
-│   └── SEENDISJOB_CONTEXT.md       Internal design and implementation history.
+│   └── SEENDISJOB_CONTEXT.md     Internal design and implementation history.
+├── graphify-out/                 Generated codebase knowledge-graph artifacts;
+│                                not required at runtime.
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
@@ -38,8 +40,8 @@ SeenDisJob/
 │                                whether User Scripts is enabled.
 ├── popup/
 │   ├── popup.html               Toolbar popup UI.
-│   └── popup.js                 Current-tab status, history, clear-data actions,
-│                                and dashboard navigation.
+│   └── popup.js                 Current-tab status, history, and dashboard
+│                                navigation. Data management lives in dashboard.
 ├── README.md                    Public-facing project description, install steps,
 │                                use cases, and FAQ.
 ├── tests/
@@ -59,13 +61,15 @@ There are several Chrome execution contexts in play, and mixing them up is the e
 
 ## Current release notes
 
-- Release: `1.3`
+- Release: `1.4`
 - Author: Wisdom Ekwugha
 - Distribution: source-only; installed as an unpacked extension in Chrome
 - Not currently published to the Chrome Web Store
 - Includes popup status, recent history, dashboard summaries, and application counting
 - Repository: `https://github.com/UprightCode-hub/SeenDisJob`
 - LinkedIn: `https://www.linkedin.com/in/wisdom-ekwugha`
+- Optional support: `https://flutterwave.com/donate/91lbt43tel7n`
+- Update detection: the service worker compares the installed manifest version with the GitHub `main` branch manifest and links users back to the repository when a newer version exists.
 - Real browser testing is still required because the extension depends on Chrome’s `chrome.userScripts` permission
 - Some edge cases remain, especially around third-party Apply flows or external sites whose tab lineage is incomplete
 
@@ -75,3 +79,4 @@ There are several Chrome execution contexts in play, and mixing them up is the e
 - The implementation notes and decision history live in `docs/SEENDISJOB_CONTEXT.md`.
 - The matching logic is deliberately kept pure and testable in `content-scripts/matching.js`.
 - The extension’s main value proposition is local duplicate detection for job seekers, not a general-purpose job tracker.
+- The popup intentionally stays compact; backup and clearing controls are kept in dashboard Settings.

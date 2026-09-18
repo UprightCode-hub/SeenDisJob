@@ -783,7 +783,7 @@ async function handleSetAskAboutSites(enabled) {
 }
 
 /* ---------------------------------------------------------------------
- * Update checker — v1.3. This is a Load-Unpacked extension with no
+ * Update checker — current release behavior. This is a Load-Unpacked extension with no
  * Chrome Web Store auto-update, so otherwise there is no signal a newer
  * version exists until the user happens to notice. Fetches the project's
  * raw manifest.json off GitHub, compares its "version" field against
@@ -805,7 +805,7 @@ async function handleSetAskAboutSites(enabled) {
 const UPDATE_REPO_OWNER = 'UprightCode-hub';
 const UPDATE_REPO_NAME = 'SeenDisJob';
 const UPDATE_MANIFEST_URL = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/manifest.json`;
-const UPDATE_REPO_RELEASES_URL = `https://github.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/releases`;
+const UPDATE_REPO_URL = `https://github.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}`;
 const UPDATE_CHECK_KEY = 'jds_update_check'; // storage.local — { lastChecked, remoteVersion, updateAvailable, error }
 const UPDATE_CHECK_ALARM = 'jds_update_check_alarm';
 const UPDATE_CHECK_THROTTLE_MS = 12 * 60 * 60 * 1000; // 12 hours — also the alarm's period, see Event wiring below
@@ -856,12 +856,12 @@ async function checkForUpdate() {
   const cached = await getUpdateStatus();
 
   if (!isUpdateCheckerConfigured()) {
-    return { ...cached, repoUrl: UPDATE_REPO_RELEASES_URL };
+    return { ...cached, repoUrl: UPDATE_REPO_URL };
   }
 
   const now = Date.now();
   if (cached.lastChecked && (now - cached.lastChecked) < UPDATE_CHECK_THROTTLE_MS) {
-    return { ...cached, repoUrl: UPDATE_REPO_RELEASES_URL };
+    return { ...cached, repoUrl: UPDATE_REPO_URL };
   }
 
   const installedVersion = chrome.runtime.getManifest().version;
@@ -888,7 +888,7 @@ async function checkForUpdate() {
   }
 
   await saveUpdateStatus(status);
-  return { ...status, repoUrl: UPDATE_REPO_RELEASES_URL };
+  return { ...status, repoUrl: UPDATE_REPO_URL };
 }
 
 /* ---------------------------------------------------------------------

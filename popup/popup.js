@@ -70,7 +70,7 @@ function renderUpdateBanner(status) {
   const text = status.remoteVersion
     ? `SeenDisJob ${escapeHtml(status.remoteVersion)} is available.`
     : 'A newer version of SeenDisJob is available.';
-  banner.innerHTML = `${text} <a href="${escapeHtml(status.repoUrl)}" target="_blank" rel="noopener">View on GitHub</a>`;
+  banner.innerHTML = `${text} <a href="${escapeHtml(status.repoUrl)}" target="_blank" rel="noopener">Update on GitHub</a>`;
 }
 
 /* ── Current-tab status card ──────────────────────────────────────── */
@@ -104,8 +104,8 @@ function renderStatus(tabState, consent) {
         : 'Matches an earlier listing.';
       break;
     default:
-      statusTitle.textContent = 'Not watching this page';
-      statusDetail.textContent = "This page didn't look like a job posting URL.";
+      statusTitle.textContent = 'Ready when you are';
+      statusDetail.textContent = 'Open a job listing to start tracking.';
   }
 }
 
