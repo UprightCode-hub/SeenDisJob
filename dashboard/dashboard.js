@@ -59,9 +59,22 @@ function renderConsent(consent) {
 // status comes from response.updateStatus in the GET_DASHBOARD_DATA
 // reply — background.js's checkForUpdate() throttles the actual network
 // check internally, so this just renders whatever it was last told.
+const LATEST_VERSION_NOTE_DURATION_MS = 48 * 60 * 60 * 1000;
+
 function renderUpdateBanner(status) {
   const banner = document.getElementById('update-banner');
-  if (!status || !status.updateAvailable) {
+  if (!status) {
+    banner.style.display = 'none';
+    return;
+  }
+  const latestNoteIsFresh = status.lastChecked &&
+    Date.now() - status.lastChecked < LATEST_VERSION_NOTE_DURATION_MS;
+  if (!status.updateAvailable && status.installedVersion && status.remoteVersion && !status.error && latestNoteIsFresh) {
+    banner.style.display = 'block';
+    banner.textContent = `You are using the latest version (${status.installedVersion}).`;
+    return;
+  }
+  if (!status.updateAvailable) {
     banner.style.display = 'none';
     return;
   }

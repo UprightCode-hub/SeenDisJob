@@ -806,7 +806,7 @@ const UPDATE_REPO_OWNER = 'UprightCode-hub';
 const UPDATE_REPO_NAME = 'SeenDisJob';
 const UPDATE_MANIFEST_URL = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/manifest.json`;
 const UPDATE_REPO_URL = `https://github.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}`;
-const UPDATE_CHECK_KEY = 'jds_update_check'; // storage.local — { lastChecked, remoteVersion, updateAvailable, error }
+const UPDATE_CHECK_KEY = 'jds_update_check'; // storage.local — { lastChecked, installedVersion, remoteVersion, updateAvailable, error }
 const UPDATE_CHECK_ALARM = 'jds_update_check_alarm';
 const UPDATE_CHECK_THROTTLE_MS = 12 * 60 * 60 * 1000; // 12 hours — also the alarm's period, see Event wiring below
 
@@ -852,19 +852,20 @@ async function saveUpdateStatus(status) {
 // handleGetStatus/handleGetDashboardData) — the lastChecked throttle
 // below, not a separate "read-only" code path, is what keeps the latter
 // from firing a real fetch on every popup/dashboard open.
-async function checkForUpdate() {
+async function checkForUpdate({ force = false } = {}) {
   const cached = await getUpdateStatus();
 
   if (!isUpdateCheckerConfigured()) {
     return { ...cached, repoUrl: UPDATE_REPO_URL };
   }
 
+  const installedVersion = chrome.runtime.getManifest().version;
+  const cachedVersionMatches = cached.installedVersion === installedVersion;
   const now = Date.now();
-  if (cached.lastChecked && (now - cached.lastChecked) < UPDATE_CHECK_THROTTLE_MS) {
+  if (!force && cachedVersionMatches && cached.lastChecked && (now - cached.lastChecked) < UPDATE_CHECK_THROTTLE_MS) {
     return { ...cached, repoUrl: UPDATE_REPO_URL };
   }
 
-  const installedVersion = chrome.runtime.getManifest().version;
   let status;
   try {
     const response = await fetch(UPDATE_MANIFEST_URL, { cache: 'no-store' });
@@ -874,6 +875,7 @@ async function checkForUpdate() {
     const comparison = compareVersions(remoteVersion, installedVersion);
     status = {
       lastChecked: now,
+      installedVersion,
       remoteVersion: remoteVersion || null,
       updateAvailable: comparison === 1,
       error: comparison === null ? 'unparsable-version' : null
@@ -884,7 +886,14 @@ async function checkForUpdate() {
     // last known-good status rather than flipping updateAvailable to
     // false on what may be a purely transient failure.
     console.debug('[SeenDisJob] update check failed (non-fatal):', err);
-    status = { ...cached, lastChecked: now, error: 'check-failed' };
+    status = {
+      ...cached,
+      lastChecked: now,
+      installedVersion,
+      remoteVersion: cachedVersionMatches ? cached.remoteVersion : null,
+      updateAvailable: cachedVersionMatches ? cached.updateAvailable : false,
+      error: 'check-failed'
+    };
   }
 
   await saveUpdateStatus(status);
@@ -904,7 +913,7 @@ chrome.alarms.create(UPDATE_CHECK_ALARM, { periodInMinutes: UPDATE_CHECK_THROTTL
 
 chrome.runtime.onInstalled.addListener((details) => {
   configureUserScriptWorld();
-  checkForUpdate(); // fire-and-forget — don't make install/update wait on GitHub
+  checkForUpdate({ force: true }); // fire-and-forget — don't make install/update wait on GitHub
   if (details.reason === 'install') {
     chrome.tabs.create({ url: chrome.runtime.getURL('onboarding/onboarding.html') });
   }
